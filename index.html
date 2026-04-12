@@ -2,9 +2,40 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Потаскумбрия</title>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    }
+
+    .wrap {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .logo-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .logo-row img {
+      width: 48%;
+    }
+  </style>
 </head>
+
 <body>
+<div class="wrap">
 
 <h1>ПОТАСКУМБРИЯ</h1>
 
@@ -22,10 +53,16 @@
 <p>mail@skumbria.su</p>
 
 <p>катаем велосипед<br>делаем движ<br>коптим скумбрию<br>пиши если надо</p>
-  
+
 <p>Лого</p>
-<img src="skumria1.jpg" style="max-width:30%; height:auto;"><img src="skumbria2.jpg" style="max-width:30%; height:auto;"><br> 
-<img src="skumbria_ski.jpg" style="max-width:30%; height:auto;"><img src="skumbria_kayak.jpg" style="max-width:30%; height:auto;"><br> 
-  
+
+<div class="logo-row">
+  <img src="skumria1.jpg">
+  <img src="skumbria2.jpg">
+  <img src="skumbria_ski.jpg">
+  <img src="skumbria_kayak.jpg">
+</div>
+
+</div>
 </body>
 </html>
