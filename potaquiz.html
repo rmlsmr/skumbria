@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <link rel="icon" href="favicon.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PotaQuiz</title>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      color: #222;
+    }
+
+    body.dark {
+      background: #0d1117;
+      color: #c9d1d9;
+    }
+
+    .wrap {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    a {
+      text-decoration: none;
+      color: #0066cc;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    body.dark a {
+      color: #58a6ff;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      cursor: pointer;
+      font-size: 20px;
+      user-select: none;
+    }
+
+    .question {
+      margin-top: 20px;
+      padding: 14px;
+      background: rgba(255,255,255,0.45);
+      border-radius: 8px;
+    }
+
+    body.dark .question {
+      background: rgba(255,255,255,0.04);
+    }
+
+    .question h3 {
+      margin: 0 0 10px 0;
+      font-size: 18px;
+      line-height: 1.35;
+    }
+
+    label {
+      display: block;
+      margin: 8px 0;
+      cursor: pointer;
+      line-height: 1.4;
+    }
+
+    button {
+      margin-top: 20px;
+      margin-right: 10px;
+      padding: 10px 14px;
+      font: inherit;
+      border: 1px solid #999;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+
+    body.dark button {
+      border-color: #555;
+    }
+
+    .result {
+      margin-top: 30px;
+      padding: 15px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.45);
+      display: none;
+    }
+
+    body.dark .result {
+      background: rgba(255,255,255,0.04);
+    }
+
+    .correct {
+      color: #1a7f37;
+      font-weight: bold;
+      margin: 6px 0;
+    }
+
+    .wrong {
+      color: #cf222e;
+      font-weight: bold;
+      margin: 6px 0;
+    }
+
+    body.dark .correct {
+      color: #3fb950;
+    }
+
+    body.dark .wrong {
+      color: #f85149;
+    }
+
+    .top-links {
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+<div class="theme-toggle" onclick="toggleTheme()" id="themeIcon">🌙</div>
+
+<div class="wrap">
+  <div class="top-links">
+    <a href="index.html">назад</a>
+  </div>
+
+  <h1>PotaQuiz</h1>
+  <p>10 вопросов для тех, кто крутит, жрет пыль, страдает в гору и потом пишет "да это была лайтовая прогулка".</p>
+
+  <form id="quizForm">
+    <div class="question">
+      <h3>1. Ты выехал без насоса, запаски и монтажек. Кто ты?</h3>
+      <label><input type="radio" name="q1" value="0"> минималист</label>
+      <label><input type="radio" name="q1" value="1"> самоуверенный долбоеб</label>
+      <label><input type="radio" name="q1" value="0"> ультралегкий райдер</label>
+      <label><input type="radio" name="q1" value="0"> сын ветра</label>
+    </div>
+
+    <div class="question">
+      <h3>2. Что обычно качают в колесо?</h3>
+      <label><input type="radio" name="q2" value="1"> давление</label>
+      <label><input type="radio" name="q2" value="0"> тестостерон</label>
+      <label><input type="radio" name="q2" value="0"> понты</label>
+      <label><input type="radio" name="q2" value="0"> карму</label>
+    </div>
+
+    <div class="question">
+      <h3>3. Шлем нужен чтобы...</h3>
+      <label><input type="radio" name="q3" value="0"> волосы не ебал ветер</label>
+      <label><input type="radio" name="q3" value="1"> башка осталась при тебе после встречи с асфальтом</label>
+      <label><input type="radio" name="q3" value="0"> выглядеть как космонавт из спортмастера</label>
+      <label><input type="radio" name="q3" value="0"> ехать на 3 км/ч быстрее</label>
+    </div>
+
+    <div class="question">
+      <h3>4. Каденс это...</h3>
+      <label><input type="radio" name="q4" value="0"> новый гель из велоаптеки</label>
+      <label><input type="radio" name="q4" value="1"> как часто ты крутишь педали</label>
+      <label><input type="radio" name="q4" value="0"> количество мата на 1 подъем</label>
+      <label><input type="radio" name="q4" value="0"> форма психоза после 120 км</label>
+    </div>
+
+    <div class="question">
+      <h3>5. Перед длинной покатушкой лучше всего...</h3>
+      <label><input type="radio" name="q5" value="0"> выйти на характере и на авось</label>
+      <label><input type="radio" name="q5" value="1"> проверить тормоза, колеса и давление</label>
+      <label><input type="radio" name="q5" value="0"> посраться в чате и ехать</label>
+      <label><input type="radio" name="q5" value="0"> натереть раму салом</label>
+    </div>
+
+    <div class="question">
+      <h3>6. GPX это...</h3>
+      <label><input type="radio" name="q6" value="0"> группа потасканных экстремалов</label>
+      <label><input type="radio" name="q6" value="1"> файл с треком маршрута</label>
+      <label><input type="radio" name="q6" value="0"> болезнь колена после бревета</label>
+      <label><input type="radio" name="q6" value="0"> сорт смазки для цепи</label>
+    </div>
+
+    <div class="question">
+      <h3>7. В гору обычно помогает...</h3>
+      <label><input type="radio" name="q7" value="0"> ебашить на самой тяжелой передаче и орать</label>
+      <label><input type="radio" name="q7" value="1"> скинуть передачу полегче и держать ровный темп</label>
+      <label><input type="radio" name="q7" value="0"> закрыть глаза и верить в чудо</label>
+      <label><input type="radio" name="q7" value="0"> обвинить велосипед</label>
+    </div>
+
+    <div class="question">
+      <h3>8. Если трансмиссия хрустит и скрипит, это значит...</h3>
+      <label><input type="radio" name="q8" value="1"> пора проверить, почистить или смазать</label>
+      <label><input type="radio" name="q8" value="0"> велосипед поет песню предков</label>
+      <label><input type="radio" name="q8" value="0"> так звучит скорость</label>
+      <label><input type="radio" name="q8" value="0"> это в раме бесы</label>
+    </div>
+
+    <div class="question">
+      <h3>9. Фара ночью нужна чтобы...</h3>
+      <label><input type="radio" name="q9" value="0"> быть новогодней хуйней на колесах</label>
+      <label><input type="radio" name="q9" value="1"> видеть дорогу и не умереть по глупости</label>
+      <label><input type="radio" name="q9" value="0"> отпугивать собак силой света</label>
+      <label><input type="radio" name="q9" value="0"> казаться важнее, чем ты есть</label>
+    </div>
+
+    <div class="question">
+      <h3>10. Главный закон групповой покатушки?</h3>
+      <label><input type="radio" name="q10" value="0"> кто громче пиздит, тот и лидер</label>
+      <label><input type="radio" name="q10" value="0"> каждый сам за себя, скумбрия за всех</label>
+      <label><input type="radio" name="q10" value="1"> предупреждать, не тупить и не быть мудаком</label>
+      <label><input type="radio" name="q10" value="0"> если отвалился, значит был слаб</label>
+    </div>
+
+    <button type="button" onclick="checkQuiz()">проверить</button>
+    <button type="button" onclick="resetQuiz()">заново</button>
+  </form>
+
+  <div class="result" id="result"></div>
+</div>
+
+<script>
+  const icon = document.getElementById('themeIcon');
+
+  function setIcon() {
+    icon.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+  }
+
+  function toggleTheme() {
+    document.body.classList.toggle('dark');
+    localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    setIcon();
+  }
+
+  if (localStorage.getItem('theme') === 'dark') {
+    document.body.classList.add('dark');
+  }
+
+  setIcon();
+
+  const correctAnswers = {
+    q1: "1",
+    q2: "1",
+    q3: "1",
+    q4: "1",
+    q5: "1",
+    q6: "1",
+    q7: "1",
+    q8: "1",
+    q9: "1",
+    q10: "1"
+  };
+
+  function checkQuiz() {
+    let score = 0;
+    let answered = 0;
+    let details = "";
+
+    for (const q in correctAnswers) {
+      const selected = document.querySelector(`input[name="${q}"]:checked`);
+      if (selected) {
+        answered++;
+        if (selected.value === correctAnswers[q]) {
+          score++;
+          details += `<div class="correct">${q.toUpperCase()}: попал, чертяка</div>`;
+        } else {
+          details += `<div class="wrong">${q.toUpperCase()}: мимо, братан</div>`;
+        }
+      } else {
+        details += `<div class="wrong">${q.toUpperCase()}: пропущено, ну ты и жук</div>`;
+      }
+    }
+
+    let verdict = "";
+    if (score === 10) verdict = "10 из 10. ты не велолюбитель, ты кареточный демон и покровитель покатушек.";
+    else if (score >= 8) verdict = "сильно. уже можешь важно щуриться у стойки с насосом и давать советы.";
+    else if (score >= 5) verdict = "жить можно. ты еще не пропащий, просто местами клоун на колесах.";
+    else if (score >= 3) verdict = "плохо. тебе пока опасно доверять даже звонок и бутылку воды.";
+    else verdict = "это пиздец. слезай с велосипеда и иди читать матчасть, пока никого не угробил.";
+
+    const result = document.getElementById("result");
+    result.style.display = "block";
+    result.innerHTML = `
+      <h2>Результат: ${score} / 10</h2>
+      <p>${verdict}</p>
+      <p>Отвечено: ${answered} из 10</p>
+      ${details}
+    `;
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+  }
+
+  function resetQuiz() {
+    document.getElementById("quizForm").reset();
+    const result = document.getElementById("result");
+    result.style.display = "none";
+    result.innerHTML = "";
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
