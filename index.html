@@ -15,6 +15,11 @@
       color: #222;
     }
 
+    body.dark {
+      background: #121212;
+      color: #e8e8e8;
+    }
+
     .wrap {
       max-width: 700px;
       margin: 0 auto;
@@ -43,11 +48,36 @@
     a:hover {
       text-decoration: underline;
     }
+
+    body.dark a {
+      color: #7db4ff;
+    }
+
+    .theme-toggle {
+      margin-bottom: 20px;
+    }
+
+    .theme-toggle button {
+      font: inherit;
+      padding: 6px 10px;
+      border: 1px solid #999;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    body.dark .theme-toggle button {
+      border-color: #666;
+    }
   </style>
 </head>
 
 <body>
 <div class="wrap">
+
+<div class="theme-toggle">
+  <button onclick="toggleTheme()">тема: день / ночь</button>
+</div>
 
 <h1>ПОТАСКУМБРИЯ</h1>
 
@@ -107,7 +137,8 @@
 
 <p><b>Вечная классика</b><br>
 Ски-тур в Подвалье<br>
-День Потаскумбрии<br>
+День Потаскумбрии
+(<a href="https://www.youtube.com/watch?v=phKYJjIrBok" target="_blank">смотреть</a>)<br>
 </p>
 
 <p><b>Лого</b></p>
@@ -120,5 +151,16 @@
 </div>
 
 </div>
+
+<script>
+  function toggleTheme() {
+    document.body.classList.toggle('dark');
+    localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+  }
+
+  if (localStorage.getItem('theme') === 'dark') {
+    document.body.classList.add('dark');
+  }
+</script>
 </body>
 </html>
