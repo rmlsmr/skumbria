@@ -101,7 +101,7 @@
   <h1>Мудрость скумбрии</h1>
   <p>Нажми кнопку и получи скумбрийную истину.</p>
 
-  <button type="button" onclick="getWisdom()">получить мудрость</button>
+  <button type="button" onclick="getWisdom()" id="wisdomBtn">получить мудрость</button>
 
   <div class="wisdom-box" id="wisdomBox">скумбрия молчит, пока ты не нажмешь кнопку</div>
   <div class="hint">скумбрия, велосипед, жизнь и немного внутреннего копчения</div>
@@ -110,6 +110,7 @@
 <script>
   const icon = document.getElementById("themeIcon");
   const wisdomBox = document.getElementById("wisdomBox");
+  const wisdomBtn = document.getElementById("wisdomBtn");
 
   function setIcon() {
     icon.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
@@ -126,6 +127,24 @@
   }
 
   setIcon();
+
+  const buttonTexts = [
+    "получить мудрость",
+    "получить по яйцам",
+    "получить пирожок",
+    "получить скумбрию",
+    "получить велобазу",
+    "получить копчение",
+    "получить леща",
+    "получить наставление",
+    "получить рыбный совет",
+    "получить в табло жизнью"
+  ];
+
+  function randomButtonText() {
+    const randomIndex = Math.floor(Math.random() * buttonTexts.length);
+    wisdomBtn.textContent = buttonTexts[randomIndex];
+  }
 
   const wisdoms = [
     "Если на старте сказали \"лайт\", готовься страдать как копченая скумбрия на солнце.",
@@ -234,7 +253,10 @@
   function getWisdom() {
     const randomIndex = Math.floor(Math.random() * wisdoms.length);
     wisdomBox.textContent = wisdoms[randomIndex];
+    randomButtonText();
   }
+
+  randomButtonText();
 </script>
 </body>
 </html>
