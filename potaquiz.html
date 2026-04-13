@@ -83,7 +83,28 @@
       border-radius: 6px;
     }
 
+    button:active {
+      transform: scale(0.97);
+    }
+
     body.dark button {
+      border-color: #555;
+    }
+
+    input[type="text"] {
+      margin-top: 8px;
+      padding: 10px 12px;
+      font: inherit;
+      border: 1px solid #999;
+      border-radius: 6px;
+      background: transparent;
+      color: inherit;
+      width: 100%;
+      max-width: 320px;
+      box-sizing: border-box;
+    }
+
+    body.dark input[type="text"] {
       border-color: #555;
     }
 
@@ -122,6 +143,22 @@
     .top-links {
       margin-bottom: 20px;
     }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    td, th {
+      padding: 8px 6px;
+      text-align: left;
+      border-bottom: 1px solid rgba(128,128,128,0.25);
+    }
+
+    .rank {
+      width: 50px;
+    }
   </style>
 </head>
 <body>
@@ -134,6 +171,11 @@
 
   <h1>PotaQuiz</h1>
   <p>Скумбрийный велоквиз.</p>
+
+  <p>
+    <label for="nickname">твоя скумбрийная кличка:</label><br>
+    <input type="text" id="nickname" placeholder="например, копченый рамиль" maxlength="30">
+  </p>
 
   <form id="quizForm">
     <div class="question">
@@ -220,12 +262,30 @@
     <button type="button" onclick="resetQuiz()">заново</button>
   </form>
 
+  <div id="shareBlock" style="display:none; margin-top:15px;">
+    <button type="button" onclick="shareToTelegram()">поделиться в тг</button>
+  </div>
+
   <div class="result" id="result"></div>
+
+  <div class="result" id="leaderboard" style="display:block; margin-top:30px;">
+    <h2>топ скумбрий</h2>
+    <div id="leaderboardContent">загрузка...</div>
+  </div>
 </div>
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
-  import { getDatabase, ref, runTransaction } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
+  import {
+    getDatabase,
+    ref,
+    runTransaction,
+    push,
+    get,
+    query,
+    orderByChild,
+    limitToLast
+  } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyDHqiDJv2-zDTzZN9YLQg2hwykNKnX7qcI",
@@ -241,30 +301,114 @@
   const app = initializeApp(firebaseConfig);
   const db = getDatabase(app);
 
-  const icon = document.getElementById('themeIcon');
+  const icon = document.getElementById("themeIcon");
+  const nicknameInput = document.getElementById("nickname");
+  const leaderboardContent = document.getElementById("leaderboardContent");
+  const shareBlock = document.getElementById("shareBlock");
+
+  let lastScore = null;
+  let lastNickname = null;
+  let alreadyChecked = false;
 
   function setIcon() {
-    icon.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+    icon.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
   }
 
   window.toggleTheme = function () {
-    document.body.classList.toggle('dark');
-    localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    document.body.classList.toggle("dark");
+    localStorage.setItem(
+      "theme",
+      document.body.classList.contains("dark") ? "dark" : "light"
+    );
     setIcon();
   };
 
-  if (localStorage.getItem('theme') === 'dark') {
-    document.body.classList.add('dark');
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
   }
+
+  const savedNickname = localStorage.getItem("potaquiz_nickname");
+  if (savedNickname) {
+    nicknameInput.value = savedNickname;
+  }
+
+  nicknameInput.addEventListener("input", () => {
+    localStorage.setItem("potaquiz_nickname", nicknameInput.value.trim());
+  });
 
   setIcon();
 
   async function incrementGlobalCount() {
-    const countRef = ref(db, 'potaquiz_count');
+    const countRef = ref(db, "potaquiz_count");
     const result = await runTransaction(countRef, (current) => {
       return (current || 0) + 1;
     });
     return result.snapshot.val();
+  }
+
+  async function saveScore(name, score) {
+    const scoresRef = ref(db, "potaquiz_scores");
+    await push(scoresRef, {
+      name,
+      score,
+      createdAt: Date.now()
+    });
+  }
+
+  async function loadLeaderboard() {
+    try {
+      const scoresRef = query(ref(db, "potaquiz_scores"), orderByChild("score"), limitToLast(20));
+      const snapshot = await get(scoresRef);
+
+      if (!snapshot.exists()) {
+        leaderboardContent.innerHTML = "пока пусто. будь первой скумбрией.";
+        return;
+      }
+
+      const raw = [];
+      snapshot.forEach((child) => {
+        raw.push(child.val());
+      });
+
+      raw.sort((a, b) => {
+        if (b.score !== a.score) return b.score - a.score;
+        return a.createdAt - b.createdAt;
+      });
+
+      const top = raw.slice(0, 10);
+
+      let html = `<table>
+        <tr>
+          <th class="rank">#</th>
+          <th>ник</th>
+          <th>очки</th>
+        </tr>`;
+
+      top.forEach((item, index) => {
+        html += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${escapeHtml(item.name || "безымянная скумбрия")}</td>
+            <td>${item.score}/10</td>
+          </tr>
+        `;
+      });
+
+      html += `</table>`;
+      leaderboardContent.innerHTML = html;
+    } catch (e) {
+      leaderboardContent.innerHTML = "не удалось загрузить топ скумбрий";
+      console.error(e);
+    }
+  }
+
+  function escapeHtml(str) {
+    return String(str)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
   }
 
   const correctAnswers = {
@@ -290,27 +434,7 @@
     "умная скумбрия, не протух",
     "ты жирный мозг косяка",
     "ну ты и альфа-скумбр",
-    "хорош, рыбный академик",
-    "великая скумбрия, шаришь",
-    "чешуйчатый гений, база",
-    "умный плавник, уважение",
-    "сочный ответ, скумбр-батя",
-    "рыбный лорд, четко",
-    "красава, копченая элита",
-    "сильный скумбрийный ход",
-    "в точку, морской стратег",
-    "ты прям скумбр-магистр",
-    "хорош, не зря вялился",
-    "ну это база, рыбный князь",
-    "ответил как взрослая скумбрия",
-    "прям вкусно попал",
-    "хорош, тунец бы заплакал",
-    "косяк тобой бы гордился",
-    "умный как скумбрия у костра",
-    "соль, дым и интеллект",
-    "попал как копье в бочку",
-    "жирный плюс к плавнику",
-    "брат, ты скумбрийный профессор"
+    "хорош, рыбный академик"
   ];
 
   const wrongPhrases = [
@@ -321,38 +445,8 @@
     "ты лох, селедочный клоун",
     "мимо, рыбный лох",
     "ну ты и консервная башка",
-    "ошибся, скумбрийный валенок",
     "это позор для всего косяка",
-    "не угадал, селедочный клоун",
-    "брат, ты плавник без рыбы",
-    "тебя нельзя выпускать дальше рыбного ларька",
-    "это сильно мимо, копченая голова",
-    "ну и шпротина ты, конечно",
-    "ты лох, чешуя пустая",
-    "ты лох, недокопченый",
-    "рыбный позор, ты лох",
-    "ну ты и скумбрийный долбоеб",
-    "ошибся как мокрая шпрота",
-    "ты лох, и косяк это видел",
-    "скумбрия бы заплакала от такого ответа",
-    "мимо как сельдь без компаса",
-    "ну и карась ты, конечно",
-    "ты лох, плавник деревянный",
-    "ответ уровня вареной кильки",
-    "ты лох, консервный мыслитель",
-    "чешуя есть, мозга нет, ты лох",
-    "рыбный стыд и срам",
-    "ну ты и морской пельмень",
-    "ты лох, и это уже медицинский факт",
-    "не ответ, а тухлый фарш",
-    "ты лох, скумбрийный пенсионер",
-    "мимо кассы, мимо моря, ты лох",
-    "ты шпрота без будущего",
-    "рыбный овощ, ты лох",
-    "ну и тина у тебя в голове",
     "ты лох, косяк тебя осуждает",
-    "селедка бы и то поняла",
-    "ты лох, копченый впустую",
     "это прям уровень донной рыбы"
   ];
 
@@ -360,88 +454,39 @@
     "пропустил, зассавшая сардина",
     "нет ответа, вареная килька",
     "молчишь как рыба, и не в хорошем смысле",
-    "где ответ, скумбрийный соня",
     "пропуск, минус чешуя",
-    "ну и кто ты после этого, рыбный овощ",
     "пропустил, ты лох",
-    "нет ответа, потому что ты лох",
-    "молчание кильки, ты лох",
-    "зассал отвечать, рыбный лох",
-    "промолчал как консервная банка",
-    "ответ утонул, а ты лох",
-    "ну и тишина, как на дне",
-    "эх ты, скумбрийный молчун",
-    "пропуск, ты шпрота без воли",
-    "где твой ответ, копченый лох",
-    "тишина уровня тухлой бочки",
-    "не ответил, косяк в ахуе",
-    "промолчал, значит ты лох",
-    "ответ не найден, рыбный стыд"
+    "промолчал, значит ты лох"
   ];
 
   const finalPraise = [
-    "10 из 10. ты священная скумбрия косяка, кареточный Посейдон и ужас всех тупых покатушек.",
-    "10 из 10. ты великая копченая скумбрия, морской архонт трансмиссии.",
-    "10 из 10. ты скумбрийный полководец, за тобой косяк пойдет в любой апхилл.",
-    "10 из 10. ты жирный мозг косяка и живая энциклопедия копченой базы.",
-    "10 из 10. ты альфа-скумбр, чешуйчатый стратег и повелитель темпа.",
-    "10 из 10. ты не человек, ты скумбрийный тотем на двух колесах.",
-    "10 из 10. ты копченый пророк покатушек и магистр рыбной дисциплины.",
-    "10 из 10. ты скумбрийный патриарх, плавник мудрости и гроза кильки.",
-    "10 из 10. ты морской гений, косяк тебя должен носить на плавниках.",
-    "10 из 10. ты король скумбрии, шоссейный левиафан и начальник всей чешуи."
+    "10 из 10. ты священная скумбрия косяка.",
+    "10 из 10. ты великая копченая скумбрия.",
+    "10 из 10. ты король скумбрии."
   ];
 
   const finalStrong = [
-    "мощно. ты крепкая копченая скумбрия, уже можешь важно шевелить плавником и учить молодняк.",
-    "сильно. ты почти элитная скумбрия, косяк уже смотрит на тебя с уважением.",
-    "очень хорошо. ты жирный скумбрийный авторитет, но еще не морской архонт.",
-    "нормально так. ты умная скумбрия, не лох, уже видно породу.",
-    "крепко. ты копченый спец по выживанию в косяке.",
-    "сочно. ты не просто рыба, ты скумбрийный инструктор на минималках.",
-    "достойно. ты уже не шпрота, а вполне уважаемая скумбрия.",
-    "уверенно. ты рыбный крепыш, у которого темп не вместо мозга.",
-    "бодро. ты скумбрийный командир второго эшелона.",
-    "хорошо. ты косячный умник с легким ароматом дыма."
+    "мощно. ты крепкая копченая скумбрия.",
+    "сильно. ты почти элитная скумбрия.",
+    "очень хорошо. ты жирный скумбрийный авторитет."
   ];
 
   const finalMid = [
-    "терпимо. еще не тухляк, но пока скорее полусоленая скумбрия с замашками.",
+    "терпимо. еще не тухляк, но пока полусоленая скумбрия.",
     "середняк. ты не лох окончательно, но и не копченый бог.",
-    "нормально. местами скумбрия, местами шпрота.",
-    "жить можно. косяк тебя еще не выгнал, но поглядывает косо.",
-    "плавать можно. мозг есть, но временами он уходит на нерест.",
-    "неплохо, но сыровато. ты скумбрийный полуфабрикат.",
-    "терпимо. ты уже не дно, но пока еще рыбный стажер.",
-    "такое себе. не совсем лох, но близко к рыбной неловкости.",
-    "в целом ок, но пока ты скумбрия без диплома.",
-    "пойдет. иногда ты хорош, иногда ты просто шпротина с амбициями."
+    "нормально. местами скумбрия, местами шпрота."
   ];
 
   const finalBad = [
-    "слабо. ты пока декоративная рыбина, больше блестишь, чем реально плывешь.",
-    "плохо. ты лоховатая скумбрия с мутным взглядом.",
-    "так себе. косяк тебя терпит из жалости и из-за наличия насоса.",
-    "слабо. ты шпрота с понтами и нулем скумбрийной дисциплины.",
-    "ну такое. ты лох, но еще обратимый.",
-    "печально. ты рыбный пассажир, а не райдер.",
-    "хреново. скумбрия в тебе еще не созрела.",
-    "очень средне. ты лох, плавник шумный, толку мало.",
-    "неважно. ты косячный балласт с элементами шпроты.",
-    "ты пока сырой, как недокопченная скумбрия. и да, ты лох."
+    "слабо. ты пока декоративная рыбина.",
+    "плохо. ты лоховатая скумбрия.",
+    "ну такое. ты лох, но еще обратимый."
   ];
 
   const finalDisaster = [
-    "это разъеб. снимай джерси, иди в рыбный техникум и не позорь косяк.",
-    "катастрофа. ты лох, шпрота и консервный мыслитель в одном лице.",
-    "ужас. тебя нельзя выпускать дальше ближайшего пирса, ты лох.",
-    "это пиздец. косяк в трауре, скумбрия в слезах, ты лох.",
-    "разнос. ты донная килька с дипломом позора.",
-    "все очень плохо. ты лох, и даже селедка бы ответила лучше.",
-    "косячный провал. тебе бы сначала научиться отличать темп от паники.",
-    "дно моря. ты лоховатый рыбный овощ без чешуи достоинства.",
-    "это уровень тухлой банки. ты лох, братан.",
-    "полный рыбный крах. верни велосипед морю."
+    "это разъеб. иди в рыбный техникум.",
+    "катастрофа. ты лох, шпрота и консервный мыслитель.",
+    "это пиздец. косяк в трауре, ты лох."
   ];
 
   function randomPhrase(arr) {
@@ -457,6 +502,9 @@
   }
 
   window.checkQuiz = async function () {
+    if (alreadyChecked) return;
+    alreadyChecked = true;
+
     let score = 0;
     let answered = 0;
     let details = "";
@@ -476,27 +524,54 @@
       }
     }
 
-    const count = await incrementGlobalCount();
+    const nickname = (nicknameInput.value || "").trim() || "безымянная скумбрия";
+    lastNickname = nickname;
+    lastScore = score;
+
+    let count = "???";
+    try {
+      count = await incrementGlobalCount();
+      await saveScore(nickname, score);
+      await loadLeaderboard();
+    } catch (e) {
+      console.error(e);
+    }
 
     const result = document.getElementById("result");
     result.style.display = "block";
     result.innerHTML = `
       <h2>Результат: ${score} / 10</h2>
       <p>${finalVerdict(score)}</p>
+      <p>ник: <b>${escapeHtml(nickname)}</b></p>
       <p>Отвечено: ${answered} из 10</p>
       <p><b>опрос прошли уже ${count} раз</b></p>
       ${details}
     `;
-    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+
+    shareBlock.style.display = "block";
+    window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
   };
 
   window.resetQuiz = function () {
+    alreadyChecked = false;
     document.getElementById("quizForm").reset();
     const result = document.getElementById("result");
     result.style.display = "none";
     result.innerHTML = "";
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    shareBlock.style.display = "none";
+    lastScore = null;
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
+
+  window.shareToTelegram = function () {
+    if (lastScore === null) return;
+
+    const text = `Я прошел PotaQuiz на ${lastScore}/10. Мой ник: ${lastNickname}. А ты че, скумбрия или шпрота?`;
+    const url = `https://t.me/share/url?url=${encodeURIComponent("https://skumbria.su/potaquiz.html")}&text=${encodeURIComponent(text)}`;
+    window.open(url, "_blank");
+  };
+
+  loadLeaderboard();
 </script>
 </body>
 </html>
