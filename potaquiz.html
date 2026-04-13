@@ -144,20 +144,50 @@
       margin-bottom: 20px;
     }
 
+    .timer-box {
+      margin-top: 18px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.45);
+      display: inline-block;
+      min-width: 120px;
+    }
+
+    body.dark .timer-box {
+      background: rgba(255,255,255,0.04);
+    }
+
+    .timer-value {
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 4px;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 10px;
+      font-size: 14px;
     }
 
     td, th {
       padding: 8px 6px;
       text-align: left;
       border-bottom: 1px solid rgba(128,128,128,0.25);
+      vertical-align: top;
     }
 
     .rank {
-      width: 50px;
+      width: 42px;
+    }
+
+    .score-col {
+      width: 70px;
+    }
+
+    .time-col {
+      width: 80px;
+      white-space: nowrap;
     }
   </style>
 </head>
@@ -176,6 +206,11 @@
     <label for="nickname">твоя скумбрийная кличка:</label><br>
     <input type="text" id="nickname" placeholder="например, копченый рамиль" maxlength="30">
   </p>
+
+  <div class="timer-box">
+    <div>время решения</div>
+    <div class="timer-value" id="timerValue">00:00</div>
+  </div>
 
   <form id="quizForm">
     <div class="question">
@@ -269,7 +304,7 @@
   <div class="result" id="result"></div>
 
   <div class="result" id="leaderboard" style="display:block; margin-top:30px;">
-    <h2>топ скумбрий</h2>
+    <h2>топ 30 скумбрий</h2>
     <div id="leaderboardContent">загрузка...</div>
   </div>
 </div>
@@ -302,10 +337,17 @@
   const nicknameInput = document.getElementById("nickname");
   const leaderboardContent = document.getElementById("leaderboardContent");
   const shareBlock = document.getElementById("shareBlock");
+  const quizForm = document.getElementById("quizForm");
+  const timerValue = document.getElementById("timerValue");
 
   let lastScore = null;
   let lastNickname = null;
+  let lastTimeSeconds = null;
   let alreadyChecked = false;
+
+  let timerStarted = false;
+  let timerStartMs = null;
+  let timerInterval = null;
 
   function setIcon() {
     icon.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
@@ -335,6 +377,51 @@
 
   setIcon();
 
+  function formatTime(seconds) {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+  }
+
+  function updateTimerDisplay() {
+    if (!timerStarted || timerStartMs === null) {
+      timerValue.textContent = "00:00";
+      return;
+    }
+    const elapsedSeconds = Math.floor((Date.now() - timerStartMs) / 1000);
+    timerValue.textContent = formatTime(elapsedSeconds);
+  }
+
+  function startTimer() {
+    if (timerStarted) return;
+    timerStarted = true;
+    timerStartMs = Date.now();
+    updateTimerDisplay();
+    timerInterval = setInterval(updateTimerDisplay, 1000);
+  }
+
+  function stopTimer() {
+    if (timerInterval) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+    }
+  }
+
+  function resetTimer() {
+    stopTimer();
+    timerStarted = false;
+    timerStartMs = null;
+    timerValue.textContent = "00:00";
+  }
+
+  function getElapsedSeconds() {
+    if (!timerStarted || timerStartMs === null) return 0;
+    return Math.floor((Date.now() - timerStartMs) / 1000);
+  }
+
+  quizForm.addEventListener("change", startTimer);
+  nicknameInput.addEventListener("focus", startTimer);
+
   async function incrementGlobalCount() {
     const countRef = ref(db, "potaquiz_count");
     const result = await runTransaction(countRef, (current) => {
@@ -343,11 +430,12 @@
     return result.snapshot.val();
   }
 
-  async function saveScore(name, score) {
+  async function saveScore(name, score, timeSeconds) {
     const scoresRef = ref(db, "potaquiz_scores");
     await push(scoresRef, {
       name,
       score,
+      timeSeconds,
       createdAt: Date.now()
     });
   }
@@ -370,16 +458,22 @@
         const scoreA = Number(a.score || 0);
         const scoreB = Number(b.score || 0);
         if (scoreB !== scoreA) return scoreB - scoreA;
+
+        const timeA = Number(a.timeSeconds ?? 999999);
+        const timeB = Number(b.timeSeconds ?? 999999);
+        if (timeA !== timeB) return timeA - timeB;
+
         return Number(a.createdAt || 0) - Number(b.createdAt || 0);
       });
 
-      const top = raw.slice(0, 10);
+      const top = raw.slice(0, 30);
 
       let html = `<table>
         <tr>
           <th class="rank">#</th>
           <th>ник</th>
-          <th>очки</th>
+          <th class="score-col">очки</th>
+          <th class="time-col">время</th>
         </tr>`;
 
       top.forEach((item, index) => {
@@ -388,6 +482,7 @@
             <td>${index + 1}</td>
             <td>${escapeHtml(item.name || "безымянная скумбрия")}</td>
             <td>${item.score}/10</td>
+            <td>${formatTime(Number(item.timeSeconds || 0))}</td>
           </tr>
         `;
       });
@@ -503,6 +598,8 @@
     if (alreadyChecked) return;
     alreadyChecked = true;
 
+    startTimer();
+
     let score = 0;
     let answered = 0;
     let details = "";
@@ -522,14 +619,18 @@
       }
     }
 
+    stopTimer();
+    const elapsedSeconds = getElapsedSeconds();
+
     const nickname = (nicknameInput.value || "").trim() || "безымянная скумбрия";
     lastNickname = nickname;
     lastScore = score;
+    lastTimeSeconds = elapsedSeconds;
 
     let count = "???";
     try {
       count = await incrementGlobalCount();
-      await saveScore(nickname, score);
+      await saveScore(nickname, score, elapsedSeconds);
       await loadLeaderboard();
     } catch (e) {
       console.error(e);
@@ -542,6 +643,7 @@
       <p>${finalVerdict(score)}</p>
       <p>ник: <b>${escapeHtml(nickname)}</b></p>
       <p>Отвечено: ${answered} из 10</p>
+      <p>Время: <b>${formatTime(elapsedSeconds)}</b></p>
       <p><b>опрос прошли уже ${count} раз</b></p>
       ${details}
     `;
@@ -558,13 +660,17 @@
     result.innerHTML = "";
     shareBlock.style.display = "none";
     lastScore = null;
+    lastNickname = null;
+    lastTimeSeconds = null;
+    resetTimer();
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   window.shareToTelegram = function () {
     if (lastScore === null) return;
 
-    const text = `Я прошел PotaQuiz на ${lastScore}/10. Мой ник: ${lastNickname}. А ты че, скумбрия или шпрота?`;
+    const timeText = lastTimeSeconds !== null ? formatTime(lastTimeSeconds) : "00:00";
+    const text = `Я прошел PotaQuiz на ${lastScore}/10 за ${timeText}. Мой ник: ${lastNickname}. А ты че, скумбрия или шпрота?`;
     const url = `https://t.me/share/url?url=${encodeURIComponent("https://skumbria.su/potaquiz.html")}&text=${encodeURIComponent(text)}`;
     window.open(url, "_blank");
   };
