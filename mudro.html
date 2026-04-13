@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <link rel="icon" href="favicon.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мудрость скумбрии</title>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      color: #222;
+    }
+
+    body.dark {
+      background: #0d1117;
+      color: #c9d1d9;
+    }
+
+    .wrap {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    a {
+      text-decoration: none;
+      color: #0066cc;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    body.dark a {
+      color: #58a6ff;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 15px;
+      right: 15px;
+      cursor: pointer;
+      font-size: 20px;
+      user-select: none;
+    }
+
+    button {
+      margin-top: 20px;
+      margin-right: 10px;
+      padding: 10px 14px;
+      font: inherit;
+      border: 1px solid #999;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      border-radius: 6px;
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    body.dark button {
+      border-color: #555;
+    }
+
+    .top-links {
+      margin-bottom: 20px;
+    }
+
+    .wisdom-box {
+      margin-top: 25px;
+      padding: 18px;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.45);
+      min-height: 90px;
+      line-height: 1.5;
+      font-size: 22px;
+    }
+
+    body.dark .wisdom-box {
+      background: rgba(255,255,255,0.04);
+    }
+
+    .hint {
+      margin-top: 10px;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+<div class="theme-toggle" onclick="toggleTheme()" id="themeIcon">🌙</div>
+
+<div class="wrap">
+  <div class="top-links">
+    <a href="index.html">назад</a>
+  </div>
+
+  <h1>Мудрость скумбрии</h1>
+  <p>Нажми кнопку и получи скумбрийную истину.</p>
+
+  <button type="button" onclick="getWisdom()">получить мудрость</button>
+  <button type="button" onclick="shareWisdom()" id="shareBtn" style="display:none;">поделиться мудростью</button>
+
+  <div class="wisdom-box" id="wisdomBox">скумбрия молчит, пока ты не нажмешь кнопку</div>
+  <div class="hint">скумбрия, велосипед, жизнь и немного внутреннего копчения</div>
+</div>
+
+<script>
+  const icon = document.getElementById("themeIcon");
+  const wisdomBox = document.getElementById("wisdomBox");
+  const shareBtn = document.getElementById("shareBtn");
+
+  let currentWisdom = "";
+
+  function setIcon() {
+    icon.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
+  }
+
+  function toggleTheme() {
+    document.body.classList.toggle("dark");
+    localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+    setIcon();
+  }
+
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark");
+  }
+
+  setIcon();
+
+  const wisdoms = [
+    "Если на старте сказали \"лайт\", готовься страдать как копченая скумбрия на солнце.",
+    "Не всякий, кто купил велосипед, перестал быть лохом.",
+    "Сильная скумбрия не та, что выебывается, а та, что доезжает.",
+    "Кто едет без насоса, тот верит не в себя, а в чудо. Лох.",
+    "Если в группе молчат про яму, рядом не косяк, а банда шпрот-предателей.",
+    "Лучший апгрейд велосипеда — мозг того, кто на нем едет.",
+    "Не верь человеку, который говорит \"да там всего один бугор\".",
+    "Прокол — это не трагедия. Трагедия — понять, что ремкомплект остался дома.",
+    "Когда тяжело, выясняется кто ты: скумбрия, шпрота или просто лох на колесах.",
+    "Сначала доедь, потом рассказывай как ты доминировал."
+  ];
+
+  function getWisdom() {
+    const randomIndex = Math.floor(Math.random() * wisdoms.length);
+    currentWisdom = wisdoms[randomIndex];
+    wisdomBox.textContent = currentWisdom;
+    shareBtn.style.display = "inline-block";
+  }
+
+  function shareWisdom() {
+    if (!currentWisdom) return;
+
+    const text = `Мудрость скумбрии: ${currentWisdom}`;
+    const url = `https://t.me/share/url?url=${encodeURIComponent("https://skumbria.su/mudro.html")}&text=${encodeURIComponent(text)}`;
+    window.open(url, "_blank");
+  }
+</script>
+</body>
+</html>
