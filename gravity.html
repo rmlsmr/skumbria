@@ -1,1 +1,726 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skumbria Defied</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+    }
+    .wrap {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 12px;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(300px, 1fr) 320px;
+      gap: 14px;
+    }
+    .panel {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 14px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .title {
+      font-size: 26px;
+      font-weight: 700;
+    }
+    .sub {
+      opacity: 0.8;
+      font-size: 14px;
+      margin-top: 4px;
+    }
+    .row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    input, button {
+      font: inherit;
+      color: inherit;
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 10px;
+      padding: 8px 12px;
+    }
+    button {
+      cursor: pointer;
+    }
+    button:hover {
+      background: rgba(255,255,255,0.06);
+    }
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: linear-gradient(#8ecbff, #dff4ff 60%, #8dc57f 60%, #628f54 100%);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.28);
+    }
+    .stats {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .stat {
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.05);
+    }
+    .help {
+      margin-top: 10px;
+      font-size: 14px;
+      opacity: 0.85;
+    }
+    .lead-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .leaderboard {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .leaderboard th, .leaderboard td {
+      text-align: left;
+      padding: 7px 4px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      vertical-align: top;
+    }
+    .leaderboard th:nth-child(1),
+    .leaderboard td:nth-child(1) { width: 28px; }
+    .leaderboard th:nth-child(3),
+    .leaderboard td:nth-child(3) { width: 62px; text-align: right; }
+    .leaderboard th:nth-child(4),
+    .leaderboard td:nth-child(4) { width: 58px; text-align: right; }
+    .small { opacity: 0.75; font-size: 13px; }
+    @media (max-width: 900px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="layout">
+      <div class="panel">
+        <div class="topbar">
+          <div>
+            <div class="title">Skumbria Defied</div>
+            <div class="sub">Скумбрийный Gravity Defied. Держи баланс, не ебнись мордой и едь дальше.</div>
+          </div>
+          <div class="row">
+            <input id="nickname" type="text" maxlength="20" placeholder="твоя скумбрия" />
+            <button id="restartBtn">заново</button>
+          </div>
+        </div>
 
+        <canvas id="game" width="760" height="420"></canvas>
+
+        <div class="stats">
+          <div class="stat">дистанция: <b id="distanceStat">0 м</b></div>
+          <div class="stat">время: <b id="timeStat">00:00</b></div>
+          <div class="stat">лучший локальный: <b id="bestLocalStat">0 м</b></div>
+        </div>
+
+        <div class="help">
+          <b>управление</b><br>
+          W / ↑ — газ<br>
+          S / ↓ — тормоз / задний ход<br>
+          A / ← и D / → — крутить корпус<br>
+          R — рестарт
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="lead-title">топ 30 скумбрий</div>
+        <div class="small" style="margin-bottom:8px;">Сортировка: дальше уехал выше. При равной дистанции быстрее время выше.</div>
+        <table class="leaderboard">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>ник</th>
+              <th>метры</th>
+              <th>время</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboardBody">
+            <tr><td colspan="4" class="small">загрузка...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      push,
+      get
+    } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDHqiDJv2-zDTzZN9YLQg2hwykNKnX7qcI",
+      authDomain: "skumbria-site.firebaseapp.com",
+      databaseURL: "https://skumbria-site-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "skumbria-site",
+      storageBucket: "skumbria-site.firebasestorage.app",
+      messagingSenderId: "700612744672",
+      appId: "1:700612744672:web:22f7af4253442012ccc785",
+      measurementId: "G-73MH3SVT7D"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const nicknameInput = document.getElementById("nickname");
+    const restartBtn = document.getElementById("restartBtn");
+    const leaderboardBody = document.getElementById("leaderboardBody");
+    const distanceStat = document.getElementById("distanceStat");
+    const timeStat = document.getElementById("timeStat");
+    const bestLocalStat = document.getElementById("bestLocalStat");
+
+    const W = canvas.width;
+    const H = canvas.height;
+    const keys = {};
+    const gravity = 0.42;
+    const accel = 0.16;
+    const brake = 0.12;
+    const wheelBase = 56;
+    const wheelRadius = 12;
+    const bodyHeight = 18;
+    const slopeProbe = 18;
+    const camLerp = 0.08;
+
+    let bestLocal = Number(localStorage.getItem("skumbria_defied_best") || 0);
+    bestLocalStat.textContent = `${bestLocal} м`;
+
+    const savedNick = localStorage.getItem("skumbria_defied_nick");
+    if (savedNick) nicknameInput.value = savedNick;
+    nicknameInput.addEventListener("input", () => {
+      localStorage.setItem("skumbria_defied_nick", nicknameInput.value.trim());
+    });
+
+    function formatTime(totalSec) {
+      const m = Math.floor(totalSec / 60);
+      const s = totalSec % 60;
+      return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function terrainY(x) {
+      const base =
+        300
+        + Math.sin(x * 0.010) * 22
+        + Math.sin(x * 0.021 + 1.8) * 12
+        + Math.sin(x * 0.0045 + 0.7) * 48;
+
+      const bump =
+        Math.max(0, Math.sin(x * 0.034 - 1.2)) * 24 +
+        Math.max(0, Math.sin(x * 0.057 + 1.4)) * 14;
+
+      return base - bump;
+    }
+
+    function terrainSlope(x) {
+      return terrainY(x + slopeProbe) - terrainY(x - slopeProbe);
+    }
+
+    function resetGame() {
+      game = {
+        started: false,
+        over: false,
+        saved: false,
+        startTime: performance.now(),
+        endTime: null,
+        camX: 0,
+        bike: {
+          x: 90,
+          y: terrainY(90) - 50,
+          vx: 0,
+          vy: 0,
+          angle: -0.12,
+          angVel: 0
+        },
+        wisdomText: "",
+        wisdomUntil: 0,
+        nextWisdomAt: 120
+      };
+    }
+
+    let game;
+    resetGame();
+
+    const wisdoms = [
+      "Если можно было не ехать — значит надо было ехать.",
+      "Подъёмы не обсуждаются. Подъёмы принимаются.",
+      "Пробил колесо — значит маршрут был правильный.",
+      "Стая не бросает. Даже если ты еле крутишь.",
+      "Если ты не устал — ты не доехал.",
+      "Грязь — это не проблема. Это состояние.",
+      "Остановился — значит слабый.",
+      "Остановился покурить — значит философ.",
+      "Если можно было не падать — значит надо было падать красиво.",
+      "Настоящая скумбрия не боится ебанутого рельефа."
+    ];
+
+    function showWisdom() {
+      game.wisdomText = wisdoms[Math.floor(Math.random() * wisdoms.length)];
+      game.wisdomUntil = performance.now() + 2600;
+    }
+
+    function bikePoints(bike) {
+      const ca = Math.cos(bike.angle);
+      const sa = Math.sin(bike.angle);
+      const rear = {
+        x: bike.x - ca * wheelBase / 2,
+        y: bike.y - sa * wheelBase / 2
+      };
+      const front = {
+        x: bike.x + ca * wheelBase / 2,
+        y: bike.y + sa * wheelBase / 2
+      };
+      const head = {
+        x: bike.x + ca * 18 - sa * (bodyHeight + 16),
+        y: bike.y + sa * 18 + ca * (bodyHeight + 16)
+      };
+      return { rear, front, head };
+    }
+
+    function updateBike() {
+      const b = game.bike;
+      const pts = bikePoints(b);
+
+      if (!game.started) {
+        b.y = terrainY(b.x) - 52;
+        return;
+      }
+
+      if (keys["ArrowLeft"] || keys["KeyA"]) b.angVel -= 0.0042;
+      if (keys["ArrowRight"] || keys["KeyD"]) b.angVel += 0.0042;
+
+      if (keys["ArrowUp"] || keys["KeyW"]) {
+        b.vx += Math.cos(b.angle) * accel;
+      }
+      if (keys["ArrowDown"] || keys["KeyS"]) {
+        b.vx -= Math.cos(b.angle) * brake;
+      }
+
+      b.vy += gravity;
+      b.x += b.vx;
+      b.y += b.vy;
+      b.angle += b.angVel;
+
+      b.vx *= 0.995;
+      b.angVel *= 0.992;
+
+      const newPts = bikePoints(b);
+      const frontGround = terrainY(newPts.front.x) - wheelRadius;
+      const rearGround = terrainY(newPts.rear.x) - wheelRadius;
+
+      let contactFront = false;
+      let contactRear = false;
+
+      if (newPts.front.y > frontGround) {
+        const diff = newPts.front.y - frontGround;
+        b.y -= diff;
+        b.vy *= 0.15;
+        contactFront = true;
+      }
+
+      const rearPts = bikePoints(b);
+      if (rearPts.rear.y > rearGround) {
+        const diff = rearPts.rear.y - rearGround;
+        b.y -= diff;
+        b.vy *= 0.15;
+        contactRear = true;
+      }
+
+      const slope = terrainSlope(b.x);
+      const terrainAngle = Math.atan2(slope, slopeProbe * 2);
+
+      if (contactFront || contactRear) {
+        b.angle += (terrainAngle - b.angle) * 0.09;
+
+        if (keys["ArrowUp"] || keys["KeyW"]) {
+          b.vx += Math.max(0, 0.03 - Math.abs(terrainAngle) * 0.006);
+        }
+
+        if (!keys["ArrowUp"] && !keys["KeyW"] && !keys["ArrowDown"] && !keys["KeyS"]) {
+          b.vx *= 0.992;
+        }
+      }
+
+      const crashPts = bikePoints(b);
+      if (crashPts.head.y >= terrainY(crashPts.head.x) - 2) {
+        game.over = true;
+        game.endTime = performance.now();
+      }
+
+      if (b.y > H + 300 || b.x < -100) {
+        game.over = true;
+        game.endTime = performance.now();
+      }
+
+      if (b.x > game.nextWisdomAt) {
+        game.nextWisdomAt += 180;
+        showWisdom();
+      }
+    }
+
+    function drawBackground(camX) {
+      ctx.fillStyle = "#9fd4ff";
+      ctx.fillRect(0, 0, W, H);
+
+      function mountain(yBase, amp, step, color, speedFactor) {
+        ctx.fillStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(0, H);
+        for (let sx = 0; sx <= W + step; sx += step) {
+          const worldX = sx + camX * speedFactor;
+          const y = yBase + Math.sin(worldX * 0.004) * amp + Math.sin(worldX * 0.009 + 1.7) * amp * 0.45;
+          ctx.lineTo(sx, y);
+        }
+        ctx.lineTo(W, H);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      mountain(220, 36, 28, "#9fb2c2", 0.15);
+      mountain(250, 48, 28, "#7f93a4", 0.28);
+
+      ctx.fillStyle = "rgba(255,255,255,0.9)";
+      for (let i = 0; i < 4; i++) {
+        const x = ((i * 210 - camX * 0.15) % (W + 120)) - 40;
+        const y = 70 + (i % 2) * 34;
+        ctx.beginPath();
+        ctx.arc(x, y, 18, 0, Math.PI * 2);
+        ctx.arc(x + 20, y - 8, 22, 0, Math.PI * 2);
+        ctx.arc(x + 42, y, 18, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawTerrain(camX) {
+      ctx.beginPath();
+      ctx.moveTo(0, H);
+      for (let sx = 0; sx <= W; sx += 6) {
+        const wx = sx + camX;
+        ctx.lineTo(sx, terrainY(wx));
+      }
+      ctx.lineTo(W, H);
+      ctx.closePath();
+      ctx.fillStyle = "#6c9258";
+      ctx.fill();
+
+      ctx.beginPath();
+      for (let sx = 0; sx <= W; sx += 6) {
+        const wx = sx + camX;
+        const y = terrainY(wx);
+        if (sx === 0) ctx.moveTo(sx, y);
+        else ctx.lineTo(sx, y);
+      }
+      ctx.strokeStyle = "#445c36";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+
+    function drawBike(camX) {
+      const b = game.bike;
+      const { rear, front, head } = bikePoints(b);
+
+      const rearX = rear.x - camX;
+      const rearY = rear.y;
+      const frontX = front.x - camX;
+      const frontY = front.y;
+      const bodyX = b.x - camX;
+      const bodyY = b.y;
+
+      ctx.strokeStyle = "#1f1f1f";
+      ctx.lineWidth = 4;
+
+      ctx.beginPath();
+      ctx.moveTo(rearX, rearY);
+      ctx.lineTo(bodyX, bodyY - 10);
+      ctx.lineTo(frontX, frontY);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(bodyX - 8, bodyY - 18);
+      ctx.lineTo(bodyX + 22, bodyY - 28);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(bodyX - 2, bodyY - 4);
+      ctx.lineTo(bodyX - 18, bodyY - 20);
+      ctx.stroke();
+
+      const bodyGradient = ctx.createLinearGradient(bodyX - 24, bodyY - 18, bodyX + 24, bodyY + 18);
+      bodyGradient.addColorStop(0, "#5d4638");
+      bodyGradient.addColorStop(0.45, "#8a684d");
+      bodyGradient.addColorStop(1, "#3c2d24");
+
+      ctx.fillStyle = bodyGradient;
+      ctx.beginPath();
+      ctx.ellipse(bodyX, bodyY - 8, 26, 14, b.angle, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "rgba(20,14,10,0.35)";
+      ctx.lineWidth = 2;
+      for (let i = -8; i <= 8; i += 6) {
+        ctx.beginPath();
+        ctx.moveTo(bodyX - 14, bodyY - 8 + i);
+        ctx.lineTo(bodyX + 16, bodyY - 10 + i * 0.4);
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = "#fff";
+      ctx.beginPath();
+      ctx.arc(bodyX + 10, bodyY - 11, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#111";
+      ctx.beginPath();
+      ctx.arc(bodyX + 12, bodyY - 11, 2.1, 0, Math.PI * 2);
+      ctx.fill();
+
+      function wheel(x, y) {
+        ctx.fillStyle = "#222";
+        ctx.beginPath();
+        ctx.arc(x, y, wheelRadius, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = "#bfc7cd";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x, y, wheelRadius - 3, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = "#888";
+        ctx.beginPath();
+        ctx.moveTo(x - 7, y);
+        ctx.lineTo(x + 7, y);
+        ctx.moveTo(x, y - 7);
+        ctx.lineTo(x, y + 7);
+        ctx.stroke();
+      }
+
+      wheel(rearX, rearY);
+      wheel(frontX, frontY);
+
+      ctx.fillStyle = "#1d1d1d";
+      ctx.beginPath();
+      ctx.arc(head.x - camX, head.y, 8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function drawHud() {
+      const distance = Math.max(0, Math.floor((game.bike.x - 90) / 4));
+      const elapsed = Math.floor(((game.over ? game.endTime : performance.now()) - game.startTime) / 1000);
+
+      distanceStat.textContent = `${distance} м`;
+      timeStat.textContent = formatTime(Math.max(0, elapsed));
+
+      ctx.fillStyle = "rgba(0,0,0,0.18)";
+      ctx.fillRect(12, 12, 150, 56);
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 22px Arial";
+      ctx.fillText(`${distance} м`, 22, 36);
+      ctx.font = "16px Arial";
+      ctx.fillText(formatTime(Math.max(0, elapsed)), 22, 58);
+
+      if (game.wisdomText && performance.now() < game.wisdomUntil) {
+        ctx.font = "16px Arial";
+        const lines = wrapText(game.wisdomText, W - 70);
+        const boxH = 18 + lines.length * 22;
+        ctx.fillStyle = "rgba(0,0,0,0.45)";
+        ctx.fillRect(35, 80, W - 70, boxH);
+        ctx.fillStyle = "#fff";
+        lines.forEach((line, i) => ctx.fillText(line, 50, 104 + i * 22));
+      }
+
+      if (!game.started && !game.over) {
+        ctx.fillStyle = "rgba(0,0,0,0.42)";
+        ctx.fillRect(120, 130, 520, 120);
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 30px Arial";
+        ctx.fillText("SKUMBRIA DEFIED", 235, 175);
+        ctx.font = "18px Arial";
+        ctx.fillText("W/↑ газ  •  S/↓ тормоз  •  A/D баланс", 208, 208);
+        ctx.fillText("Нажми газ и не ебнись", 270, 236);
+      }
+
+      if (game.over) {
+        ctx.fillStyle = "rgba(0,0,0,0.48)";
+        ctx.fillRect(150, 118, 460, 150);
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 30px Arial";
+        ctx.fillText("СКУМБРИЯ ПАЛА", 262, 162);
+        ctx.font = "22px Arial";
+        ctx.fillText(`дистанция: ${distance} м`, 278, 200);
+        ctx.fillText(`время: ${formatTime(Math.max(0, elapsed))}`, 298, 230);
+        ctx.font = "18px Arial";
+        ctx.fillText("Жми R или кнопку заново", 285, 258);
+      }
+    }
+
+    function wrapText(text, maxWidth) {
+      const words = text.split(" ");
+      const lines = [];
+      let line = "";
+      for (const word of words) {
+        const test = line ? line + " " + word : word;
+        if (ctx.measureText(test).width > maxWidth && line) {
+          lines.push(line);
+          line = word;
+        } else {
+          line = test;
+        }
+      }
+      if (line) lines.push(line);
+      return lines;
+    }
+
+    function update() {
+      if (!game.started && (keys["KeyW"] || keys["ArrowUp"])) {
+        game.started = true;
+        game.startTime = performance.now();
+      }
+
+      if (!game.over) updateBike();
+
+      game.camX += ((game.bike.x - 180) - game.camX) * camLerp;
+
+      if (game.over && !game.saved) {
+        game.saved = true;
+        const distance = Math.max(0, Math.floor((game.bike.x - 90) / 4));
+        if (distance > bestLocal) {
+          bestLocal = distance;
+          localStorage.setItem("skumbria_defied_best", String(bestLocal));
+          bestLocalStat.textContent = `${bestLocal} м`;
+        }
+        if (distance > 0) saveScoreGlobal(distance, Math.floor((game.endTime - game.startTime) / 1000));
+      }
+    }
+
+    function draw() {
+      drawBackground(game.camX);
+      drawTerrain(game.camX);
+      drawBike(game.camX);
+      drawHud();
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    async function saveScoreGlobal(distance, timeSeconds) {
+      const name = nicknameInput.value.trim() || "безымянная скумбрия";
+      try {
+        await push(ref(db, "gravity_defied_scores"), {
+          name,
+          distance,
+          timeSeconds,
+          createdAt: Date.now()
+        });
+        await loadLeaderboard();
+      } catch (e) {
+        console.error("save gravity score error:", e);
+      }
+    }
+
+    async function loadLeaderboard() {
+      try {
+        const snapshot = await get(ref(db, "gravity_defied_scores"));
+        if (!snapshot.exists()) {
+          leaderboardBody.innerHTML = `<tr><td colspan="4" class="small">пока пусто. будь первой скумбрией.</td></tr>`;
+          return;
+        }
+
+        const raw = [];
+        snapshot.forEach((child) => raw.push(child.val()));
+
+        raw.sort((a, b) => {
+          const dA = Number(a.distance || 0);
+          const dB = Number(b.distance || 0);
+          if (dB !== dA) return dB - dA;
+
+          const tA = Number(a.timeSeconds ?? 999999);
+          const tB = Number(b.timeSeconds ?? 999999);
+          if (tA !== tB) return tA - tB;
+
+          return Number(a.createdAt || 0) - Number(b.createdAt || 0);
+        });
+
+        const top = raw.slice(0, 30);
+        leaderboardBody.innerHTML = "";
+        top.forEach((item, index) => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${escapeHtml(item.name || "безымянная скумбрия")}</td>
+            <td>${Number(item.distance || 0)}</td>
+            <td>${formatTime(Number(item.timeSeconds || 0))}</td>
+          `;
+          leaderboardBody.appendChild(tr);
+        });
+      } catch (e) {
+        console.error("load gravity leaderboard error:", e);
+        leaderboardBody.innerHTML = `<tr><td colspan="4" class="small">не удалось загрузить топ скумбрий</td></tr>`;
+      }
+    }
+
+    window.addEventListener("keydown", (e) => {
+      keys[e.code] = true;
+      if (e.code === "KeyR") resetGame();
+      if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.code)) {
+        e.preventDefault();
+      }
+    });
+
+    window.addEventListener("keyup", (e) => {
+      keys[e.code] = false;
+    });
+
+    restartBtn.addEventListener("click", resetGame);
+
+    bestLocalStat.textContent = `${bestLocal} м`;
+    loadLeaderboard();
+    loop();
+  </script>
+</body>
+</html>
