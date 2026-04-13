@@ -178,8 +178,8 @@
       </div>
 
       <div class="right">
-        <div class="panel-title">Топ скумбрий</div>
-        <div class="scoreline small">Локальный лидерборд в этом браузере</div>
+        <div class="panel-title">Топ 30 скумбрий</div>
+        <div class="scoreline small">Общий лидерборд для всех</div>
         <table class="leaderboard">
           <thead>
             <tr>
@@ -194,7 +194,29 @@
     </div>
   </div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+    import {
+      getDatabase,
+      ref,
+      push,
+      get
+    } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDHqiDJv2-zDTzZN9YLQg2hwykNKnX7qcI",
+      authDomain: "skumbria-site.firebaseapp.com",
+      databaseURL: "https://skumbria-site-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "skumbria-site",
+      storageBucket: "skumbria-site.firebasestorage.app",
+      messagingSenderId: "700612744672",
+      appId: "1:700612744672:web:22f7af4253442012ccc785",
+      measurementId: "G-73MH3SVT7D"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d');
     const restartBtn = document.getElementById('restartBtn');
@@ -237,7 +259,7 @@
 
     let game;
     let bestScore = Number(localStorage.getItem('skumbria_flappy_best') || 0);
-    let scores = JSON.parse(localStorage.getItem('skumbria_flappy_scores') || '[]');
+    let savePending = false;
 
     const savedNickname = localStorage.getItem('skumbria_flappy_nick');
     if (savedNickname) nicknameInput.value = savedNickname;
@@ -248,26 +270,6 @@
 
     bestWrap.textContent = `Лучший счет: ${bestScore}`;
 
-    function renderLeaderboard() {
-      leaderboardBody.innerHTML = "";
-      const top = [...scores].sort((a, b) => b.score - a.score).slice(0, 15);
-
-      if (!top.length) {
-        leaderboardBody.innerHTML = `<tr><td colspan="3" class="small">пока пусто. будь первой копченой скумбрией.</td></tr>`;
-        return;
-      }
-
-      top.forEach((item, index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${escapeHtml(item.name || 'безымянная скумбрия')}</td>
-          <td>${item.score}</td>
-        `;
-        leaderboardBody.appendChild(tr);
-      });
-    }
-
     function escapeHtml(str) {
       return String(str)
         .replaceAll("&", "&amp;")
@@ -277,17 +279,63 @@
         .replaceAll("'", "&#039;");
     }
 
-    function saveScore(score) {
+    async function saveScore(score) {
+      if (savePending) return;
+      savePending = true;
+
       const name = nicknameInput.value.trim() || 'безымянная скумбрия';
-      scores.push({
-        name,
-        score,
-        createdAt: Date.now()
-      });
-      scores.sort((a, b) => b.score - a.score || a.createdAt - b.createdAt);
-      scores = scores.slice(0, 30);
-      localStorage.setItem('skumbria_flappy_scores', JSON.stringify(scores));
-      renderLeaderboard();
+
+      try {
+        await push(ref(db, "skumbria_flappy_scores"), {
+          name,
+          score,
+          createdAt: Date.now()
+        });
+        await loadLeaderboard();
+      } catch (e) {
+        console.error("save flappy score error:", e);
+      } finally {
+        savePending = false;
+      }
+    }
+
+    async function loadLeaderboard() {
+      try {
+        const snapshot = await get(ref(db, "skumbria_flappy_scores"));
+
+        if (!snapshot.exists()) {
+          leaderboardBody.innerHTML = `<tr><td colspan="3" class="small">пока пусто. будь первой копченой скумбрией.</td></tr>`;
+          return;
+        }
+
+        const raw = [];
+        snapshot.forEach((child) => {
+          raw.push(child.val());
+        });
+
+        raw.sort((a, b) => {
+          const scoreA = Number(a.score || 0);
+          const scoreB = Number(b.score || 0);
+          if (scoreB !== scoreA) return scoreB - scoreA;
+          return Number(a.createdAt || 0) - Number(b.createdAt || 0);
+        });
+
+        const top = raw.slice(0, 30);
+
+        leaderboardBody.innerHTML = "";
+        top.forEach((item, index) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${index + 1}</td>
+            <td>${escapeHtml(item.name || 'безымянная скумбрия')}</td>
+            <td>${Number(item.score || 0)}</td>
+          `;
+          leaderboardBody.appendChild(tr);
+        });
+      } catch (e) {
+        console.error("load flappy leaderboard error:", e);
+        leaderboardBody.innerHTML = `<tr><td colspan="3" class="small">не удалось загрузить топ скумбрий</td></tr>`;
+      }
     }
 
     function resetGame() {
@@ -298,6 +346,7 @@
         frame: 0,
         wisdomText: "",
         wisdomUntil: 0,
+        scoreSaved: false,
         fish: {
           x: 118,
           y: H / 2 - 40,
@@ -353,7 +402,13 @@
       game.frame++;
       ensurePipes();
 
-      if (!game.started || game.over) return;
+      if (!game.started || game.over) {
+        if (game.over && !game.scoreSaved) {
+          game.scoreSaved = true;
+          saveScore(game.score);
+        }
+        return;
+      }
 
       const f = game.fish;
       f.vy += gravity;
@@ -394,10 +449,6 @@
 
       if (f.y + f.r > H - riverH || f.y - f.r < 0) {
         game.over = true;
-      }
-
-      if (game.over) {
-        saveScore(game.score);
       }
     }
 
@@ -539,6 +590,25 @@
       ctx.restore();
     }
 
+    function wrapText(text, maxWidth) {
+      const words = text.split(' ');
+      const lines = [];
+      let line = '';
+
+      for (const word of words) {
+        const testLine = line ? `${line} ${word}` : word;
+        const width = ctx.measureText(testLine).width;
+        if (width > maxWidth - 28 && line) {
+          lines.push(line);
+          line = word;
+        } else {
+          line = testLine;
+        }
+      }
+      if (line) lines.push(line);
+      return lines;
+    }
+
     function drawWisdomOverlay() {
       if (!game.wisdomText || performance.now() > game.wisdomUntil) return;
 
@@ -558,25 +628,6 @@
       lines.forEach((line, i) => {
         ctx.fillText(line, x + pad, y + 24 + i * 22);
       });
-    }
-
-    function wrapText(text, maxWidth) {
-      const words = text.split(' ');
-      const lines = [];
-      let line = '';
-
-      for (const word of words) {
-        const testLine = line ? `${line} ${word}` : word;
-        const width = ctx.measureText(testLine).width;
-        if (width > maxWidth - 28 && line) {
-          lines.push(line);
-          line = word;
-        } else {
-          line = testLine;
-        }
-      }
-      if (line) lines.push(line);
-      return lines;
     }
 
     function drawHud() {
@@ -637,7 +688,7 @@
     canvas.addEventListener('pointerdown', flap);
     restartBtn.addEventListener('click', () => resetGame());
 
-    renderLeaderboard();
+    loadLeaderboard();
     resetGame();
     loop();
   </script>
