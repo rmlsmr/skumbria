@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Мудрость скумбрии</title>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
 
   <style>
     body {
@@ -71,23 +72,27 @@
       margin-bottom: 20px;
     }
 
-    .wisdom-box {
+    .wisdom-card {
       margin-top: 25px;
       padding: 18px;
-      border-radius: 8px;
-      background: rgba(255,255,255,0.45);
-      min-height: 110px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.55);
+    }
+
+    body.dark .wisdom-card {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .wisdom-card-title {
+      font-size: 14px;
+      opacity: 0.75;
+      margin-bottom: 12px;
+    }
+
+    .wisdom-box {
       line-height: 1.5;
       font-size: 22px;
-    }
-
-    body.dark .wisdom-box {
-      background: rgba(255,255,255,0.04);
-    }
-
-    .hint {
-      margin-top: 10px;
-      opacity: 0.8;
+      min-height: 110px;
     }
 
     .meta {
@@ -105,6 +110,17 @@
       padding: 6px 10px;
       font-size: 14px;
     }
+
+    .hint {
+      margin-top: 10px;
+      opacity: 0.8;
+    }
+
+    .image-only-meta {
+      margin-top: 16px;
+      font-size: 13px;
+      opacity: 0.65;
+    }
   </style>
 </head>
 <body>
@@ -119,18 +135,25 @@
   <p>Нажми кнопку и получи скумбрийную истину.</p>
 
   <button type="button" onclick="getRandomWisdom()" id="wisdomBtn">получить мудрость</button>
+  <button type="button" onclick="makeImage()">сделать картинку</button>
 
-  <div class="wisdom-box" id="wisdomBox">скумбрия молчит, пока ты не нажмешь кнопку</div>
+  <div class="wisdom-card" id="wisdomCard">
+    <div class="wisdom-card-title">Мудрость скумбрии</div>
+    <div class="wisdom-box" id="wisdomBox">скумбрия молчит, пока ты не нажмешь кнопку</div>
+    <div class="image-only-meta" id="imageMeta">skumbria.su</div>
+  </div>
+
   <div class="meta" id="wisdomMeta"></div>
   <div class="hint">скумбрия, велосипед, жизнь и немного внутреннего копчения</div>
 </div>
 
-<script src="wisdoms.js?v=2"></script>
+<script src="wisdoms.js?v=1"></script>
 <script>
   const icon = document.getElementById("themeIcon");
   const wisdomBox = document.getElementById("wisdomBox");
   const wisdomBtn = document.getElementById("wisdomBtn");
   const wisdomMeta = document.getElementById("wisdomMeta");
+  const imageMeta = document.getElementById("imageMeta");
 
   let currentWisdom = "";
   let currentWisdomId = null;
@@ -174,12 +197,14 @@
     if (!Array.isArray(wisdoms) || wisdoms.length === 0) {
       wisdomBox.textContent = "мудрости куда-то уплыли";
       wisdomMeta.innerHTML = "";
+      imageMeta.textContent = "skumbria.su";
       return;
     }
 
     if (index < 0 || index >= wisdoms.length) {
       wisdomBox.textContent = "такой мудрости не существует, рыбина";
       wisdomMeta.innerHTML = "";
+      imageMeta.textContent = "skumbria.su";
       return;
     }
 
@@ -188,9 +213,11 @@
     currentWisdomUrl = `https://skumbria.su/mudro.html?id=${currentWisdomId}`;
 
     wisdomBox.textContent = currentWisdom;
+    imageMeta.textContent = `мудрость №${currentWisdomId} • skumbria.su`;
+
     wisdomMeta.innerHTML = `
       <span>мудрость №${currentWisdomId}</span>
-      <button type="button" onclick="copyWisdomLink()">скопировать мудрость</button>
+      <button type="button" onclick="copyWisdomLink()">скопировать ссылку</button>
     `;
 
     const url = new URL(window.location.href);
@@ -220,6 +247,20 @@
         <button type="button" onclick="copyWisdomLink()">не скопировалось, жми еще</button>
       `;
     }
+  }
+
+  async function makeImage() {
+    const card = document.getElementById("wisdomCard");
+
+    const canvas = await html2canvas(card, {
+      backgroundColor: document.body.classList.contains("dark") ? "#0d1117" : "#f2f2f2",
+      scale: 2
+    });
+
+    const link = document.createElement("a");
+    link.download = `mudrost-skumbrii-${currentWisdomId || "random"}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
   }
 
   function loadFromUrl() {
