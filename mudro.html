@@ -92,9 +92,18 @@
 
     .meta {
       margin-top: 12px;
-      opacity: 0.8;
+      opacity: 0.85;
       font-size: 14px;
-      word-break: break-all;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .meta button {
+      margin-top: 0;
+      padding: 6px 10px;
+      font-size: 14px;
     }
   </style>
 </head>
@@ -110,7 +119,6 @@
   <p>Нажми кнопку и получи скумбрийную истину.</p>
 
   <button type="button" onclick="getRandomWisdom()" id="wisdomBtn">получить мудрость</button>
-  <button type="button" onclick="shareWisdom()" id="shareBtn" style="display:none;">поделиться мудростью</button>
 
   <div class="wisdom-box" id="wisdomBox">скумбрия молчит, пока ты не нажмешь кнопку</div>
   <div class="meta" id="wisdomMeta"></div>
@@ -122,11 +130,11 @@
   const icon = document.getElementById("themeIcon");
   const wisdomBox = document.getElementById("wisdomBox");
   const wisdomBtn = document.getElementById("wisdomBtn");
-  const shareBtn = document.getElementById("shareBtn");
   const wisdomMeta = document.getElementById("wisdomMeta");
 
   let currentWisdom = "";
   let currentWisdomId = null;
+  let currentWisdomUrl = "";
 
   function setIcon() {
     icon.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
@@ -165,23 +173,25 @@
   function setWisdomByIndex(index) {
     if (!Array.isArray(wisdoms) || wisdoms.length === 0) {
       wisdomBox.textContent = "мудрости куда-то уплыли";
-      wisdomMeta.textContent = "";
-      shareBtn.style.display = "none";
+      wisdomMeta.innerHTML = "";
       return;
     }
 
     if (index < 0 || index >= wisdoms.length) {
       wisdomBox.textContent = "такой мудрости не существует, рыбина";
-      wisdomMeta.textContent = "";
-      shareBtn.style.display = "none";
+      wisdomMeta.innerHTML = "";
       return;
     }
 
     currentWisdomId = index + 1;
     currentWisdom = wisdoms[index];
+    currentWisdomUrl = `https://skumbria.su/mudro.html?id=${currentWisdomId}`;
+
     wisdomBox.textContent = currentWisdom;
-    wisdomMeta.textContent = `мудрость №${currentWisdomId} • https://skumbria.su/mudro.html?id=${currentWisdomId}`;
-    shareBtn.style.display = "inline-block";
+    wisdomMeta.innerHTML = `
+      <span>мудрость №${currentWisdomId}</span>
+      <button type="button" onclick="copyWisdomLink()">скопировать ссылку</button>
+    `;
 
     const url = new URL(window.location.href);
     url.searchParams.set("id", currentWisdomId);
@@ -195,14 +205,21 @@
     randomButtonText();
   }
 
-  function shareWisdom() {
-    if (!currentWisdom || !currentWisdomId) return;
+  async function copyWisdomLink() {
+    if (!currentWisdomUrl) return;
 
-    const shareUrl = `https://skumbria.su/mudro.html?id=${currentWisdomId}`;
-    const text = `Мудрость скумбрии №${currentWisdomId}: ${currentWisdom}`;
-
-    const tgUrl = `https://t.me/share/url?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(text)}`;
-    window.open(tgUrl, "_blank");
+    try {
+      await navigator.clipboard.writeText(currentWisdomUrl);
+      wisdomMeta.innerHTML = `
+        <span>мудрость №${currentWisdomId}</span>
+        <button type="button" onclick="copyWisdomLink()">ссылка скопирована</button>
+      `;
+    } catch (e) {
+      wisdomMeta.innerHTML = `
+        <span>мудрость №${currentWisdomId}</span>
+        <button type="button" onclick="copyWisdomLink()">не скопировалось, жми еще</button>
+      `;
+    }
   }
 
   function loadFromUrl() {
