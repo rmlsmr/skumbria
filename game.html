@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skumbria Bird</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0d1117;
+      color: #c9d1d9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .wrap {
+      width: min(100vw, 480px);
+      padding: 12px;
+    }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .title {
+      font-size: 24px;
+      font-weight: 700;
+    }
+    .hint {
+      opacity: 0.8;
+      font-size: 14px;
+    }
+    canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: linear-gradient(#87c7ff, #d7f1ff 62%, #b8d59a 62%, #89b76c 100%);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+      cursor: pointer;
+    }
+    .controls {
+      margin-top: 10px;
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    button {
+      background: transparent;
+      color: inherit;
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 10px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font: inherit;
+    }
+    button:hover { background: rgba(255,255,255,0.06); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <div class="title">Flappy Скумбрия</div>
+        <div class="hint">Пробел, клик или тап — скумбрия машет плавником</div>
+      </div>
+      <button id="restartBtn">заново</button>
+    </div>
+    <canvas id="game" width="420" height="640"></canvas>
+    <div class="controls">
+      <div>Цель: не врезаться в трубы и не шлепнуться мордой об землю</div>
+      <div id="bestWrap">Лучший счет: 0</div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const restartBtn = document.getElementById('restartBtn');
+    const bestWrap = document.getElementById('bestWrap');
+
+    const W = canvas.width;
+    const H = canvas.height;
+    const groundH = 90;
+    const pipeWidth = 74;
+    const pipeGap = 170;
+    const pipeSpacing = 210;
+    const gravity = 0.42;
+    const flapPower = -6.8;
+    const pipeSpeed = 2.4;
+
+    let game;
+    let bestScore = Number(localStorage.getItem('skumbria_flappy_best') || 0);
+    bestWrap.textContent = `Лучший счет: ${bestScore}`;
+
+    function resetGame() {
+      game = {
+        started: false,
+        over: false,
+        score: 0,
+        frame: 0,
+        fish: {
+          x: 110,
+          y: H / 2 - 40,
+          vy: 0,
+          r: 22,
+          rot: 0,
+        },
+        pipes: [],
+      };
+    }
+
+    function addPipe(x) {
+      const marginTop = 70;
+      const playableH = H - groundH - 120;
+      const gapY = marginTop + Math.random() * playableH;
+      game.pipes.push({ x, gapY, passed: false });
+    }
+
+    function ensurePipes() {
+      if (!game.pipes.length) {
+        addPipe(W + 120);
+        addPipe(W + 120 + pipeSpacing);
+        addPipe(W + 120 + pipeSpacing * 2);
+      }
+      const last = game.pipes[game.pipes.length - 1];
+      if (last.x < W - pipeSpacing) addPipe(last.x + pipeSpacing);
+    }
+
+    function flap() {
+      if (game.over) {
+        resetGame();
+        return;
+      }
+      if (!game.started) game.started = true;
+      game.fish.vy = flapPower;
+    }
+
+    function circleRectCollision(cx, cy, cr, rx, ry, rw, rh) {
+      const nearestX = Math.max(rx, Math.min(cx, rx + rw));
+      const nearestY = Math.max(ry, Math.min(cy, ry + rh));
+      const dx = cx - nearestX;
+      const dy = cy - nearestY;
+      return dx * dx + dy * dy < cr * cr;
+    }
+
+    function update() {
+      game.frame++;
+      ensurePipes();
+
+      if (!game.started || game.over) return;
+
+      const f = game.fish;
+      f.vy += gravity;
+      f.y += f.vy;
+      f.rot = Math.max(-0.6, Math.min(1.2, f.vy * 0.08));
+
+      for (const pipe of game.pipes) {
+        pipe.x -= pipeSpeed;
+
+        const topH = pipe.gapY - pipeGap / 2;
+        const bottomY = pipe.gapY + pipeGap / 2;
+        const bottomH = H - groundH - bottomY;
+
+        if (circleRectCollision(f.x, f.y, f.r, pipe.x, 0, pipeWidth, topH) ||
+            circleRectCollision(f.x, f.y, f.r, pipe.x, bottomY, pipeWidth, bottomH)) {
+          game.over = true;
+        }
+
+        if (!pipe.passed && pipe.x + pipeWidth < f.x) {
+          pipe.passed = true;
+          game.score++;
+          if (game.score > bestScore) {
+            bestScore = game.score;
+            localStorage.setItem('skumbria_flappy_best', String(bestScore));
+            bestWrap.textContent = `Лучший счет: ${bestScore}`;
+          }
+        }
+      }
+
+      game.pipes = game.pipes.filter(p => p.x > -pipeWidth - 40);
+
+      if (f.y + f.r > H - groundH || f.y - f.r < 0) {
+        game.over = true;
+      }
+    }
+
+    function drawBackground() {
+      const cloud = (x, y, s = 1) => {
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.beginPath();
+        ctx.arc(x, y, 14 * s, 0, Math.PI * 2);
+        ctx.arc(x + 16 * s, y - 6 * s, 18 * s, 0, Math.PI * 2);
+        ctx.arc(x + 35 * s, y, 15 * s, 0, Math.PI * 2);
+        ctx.fill();
+      };
+      cloud(60, 90, 1);
+      cloud(250, 140, 1.2);
+      cloud(320, 70, 0.9);
+
+      ctx.fillStyle = '#5e8e45';
+      ctx.fillRect(0, H - groundH, W, groundH);
+
+      ctx.fillStyle = '#4e7d38';
+      for (let i = 0; i < W; i += 18) {
+        ctx.fillRect(i, H - groundH + ((i / 18) % 2 ? 8 : 0), 10, 12);
+      }
+    }
+
+    function drawPipe(x, gapY) {
+      const topH = gapY - pipeGap / 2;
+      const bottomY = gapY + pipeGap / 2;
+      const bottomH = H - groundH - bottomY;
+
+      ctx.fillStyle = '#2d8f3b';
+      ctx.fillRect(x, 0, pipeWidth, topH);
+      ctx.fillRect(x, bottomY, pipeWidth, bottomH);
+
+      ctx.fillStyle = '#36aa47';
+      ctx.fillRect(x - 4, topH - 20, pipeWidth + 8, 20);
+      ctx.fillRect(x - 4, bottomY, pipeWidth + 8, 20);
+    }
+
+    function drawFish() {
+      const f = game.fish;
+      ctx.save();
+      ctx.translate(f.x, f.y);
+      ctx.rotate(f.rot);
+
+      ctx.fillStyle = '#5b6d7a';
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 28, 20, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#7e93a1';
+      ctx.beginPath();
+      ctx.ellipse(-3, -3, 22, 14, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#394955';
+      ctx.beginPath();
+      ctx.moveTo(-26, 0);
+      ctx.lineTo(-44, -12);
+      ctx.lineTo(-44, 12);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#2f3e49';
+      ctx.beginPath();
+      ctx.moveTo(0, -10);
+      ctx.lineTo(-8, -26);
+      ctx.lineTo(8, -14);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = '#fff';
+      ctx.beginPath();
+      ctx.arc(16, -4, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#111';
+      ctx.beginPath();
+      ctx.arc(18, -4, 2.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#1d252b';
+      ctx.beginPath();
+      ctx.arc(25, 5, 5, 0.2, 2.8);
+      ctx.strokeStyle = '#1d252b';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function drawHud() {
+      ctx.fillStyle = 'rgba(0,0,0,0.18)';
+      ctx.fillRect(12, 12, 120, 44);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 28px Arial';
+      ctx.fillText(String(game.score), 24, 42);
+
+      if (!game.started && !game.over) {
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        ctx.fillRect(36, 200, W - 72, 132);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 28px Arial';
+        ctx.fillText('ТЫК / ПРОБЕЛ', 108, 244);
+        ctx.font = '20px Arial';
+        ctx.fillText('запусти скумбрию в полет', 88, 278);
+        ctx.fillText('и не дай ей ебнуться', 108, 306);
+      }
+
+      if (game.over) {
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        ctx.fillRect(52, 170, W - 104, 190);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 34px Arial';
+        ctx.fillText('СКУМБРИЯ ПАЛА', 80, 220);
+        ctx.font = '22px Arial';
+        ctx.fillText(`счет: ${game.score}`, 155, 264);
+        ctx.fillText(`лучший: ${bestScore}`, 137, 298);
+        ctx.font = '18px Arial';
+        ctx.fillText('тыкни или жми пробел для рестарта', 76, 336);
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      drawBackground();
+      for (const pipe of game.pipes) drawPipe(pipe.x, pipe.gapY);
+      drawFish();
+      drawHud();
+    }
+
+    function loop() {
+      update();
+      draw();
+      requestAnimationFrame(loop);
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        flap();
+      }
+    });
+
+    canvas.addEventListener('pointerdown', flap);
+    restartBtn.addEventListener('click', () => resetGame());
+
+    resetGame();
+    loop();
+  </script>
+</body>
+</html>
