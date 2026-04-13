@@ -242,6 +242,16 @@
 
   setIcon();
 
+  function getQuizCount() {
+    return parseInt(localStorage.getItem('potaquiz_count') || '0', 10);
+  }
+
+  function incrementQuizCount() {
+    const count = getQuizCount() + 1;
+    localStorage.setItem('potaquiz_count', count);
+    return count;
+  }
+
   const correctAnswers = {
     q1: "1",
     q2: "1",
@@ -451,12 +461,15 @@
       }
     }
 
+    const count = incrementQuizCount();
+
     const result = document.getElementById("result");
     result.style.display = "block";
     result.innerHTML = `
       <h2>Результат: ${score} / 10</h2>
       <p>${finalVerdict(score)}</p>
       <p>Отвечено: ${answered} из 10</p>
+      <p><b>опрос прошли уже ${count} раз</b></p>
       ${details}
     `;
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
