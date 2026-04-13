@@ -6,28 +6,33 @@
   <title>Skumbria Defied</title>
   <style>
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
       font-family: Arial, sans-serif;
       background: #0d1117;
       color: #c9d1d9;
     }
+
     .wrap {
       max-width: 1100px;
       margin: 0 auto;
       padding: 12px;
     }
+
     .layout {
       display: grid;
       grid-template-columns: minmax(300px, 1fr) 320px;
       gap: 14px;
     }
+
     .panel {
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.12);
       border-radius: 16px;
       padding: 14px;
     }
+
     .topbar {
       display: flex;
       justify-content: space-between;
@@ -36,21 +41,25 @@
       align-items: center;
       margin-bottom: 10px;
     }
+
     .title {
       font-size: 26px;
       font-weight: 700;
     }
+
     .sub {
       opacity: 0.8;
       font-size: 14px;
       margin-top: 4px;
     }
+
     .row {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
       align-items: center;
     }
+
     input, button {
       font: inherit;
       color: inherit;
@@ -59,12 +68,15 @@
       border-radius: 10px;
       padding: 8px 12px;
     }
+
     button {
       cursor: pointer;
     }
+
     button:hover {
       background: rgba(255,255,255,0.06);
     }
+
     canvas {
       width: 100%;
       height: auto;
@@ -73,7 +85,9 @@
       border: 1px solid rgba(255,255,255,0.12);
       background: linear-gradient(#8ecbff, #dff4ff 60%, #8dc57f 60%, #628f54 100%);
       box-shadow: 0 12px 32px rgba(0,0,0,0.28);
+      touch-action: none;
     }
+
     .stats {
       display: flex;
       gap: 16px;
@@ -81,42 +95,87 @@
       margin-top: 10px;
       font-size: 14px;
     }
+
     .stat {
       padding: 8px 10px;
       border-radius: 10px;
       background: rgba(255,255,255,0.05);
     }
+
     .help {
       margin-top: 10px;
       font-size: 14px;
       opacity: 0.85;
     }
+
     .lead-title {
       font-size: 20px;
       font-weight: 700;
       margin-bottom: 8px;
     }
+
     .leaderboard {
       width: 100%;
       border-collapse: collapse;
       font-size: 14px;
     }
+
     .leaderboard th, .leaderboard td {
       text-align: left;
       padding: 7px 4px;
       border-bottom: 1px solid rgba(255,255,255,0.08);
       vertical-align: top;
     }
+
     .leaderboard th:nth-child(1),
     .leaderboard td:nth-child(1) { width: 28px; }
+
     .leaderboard th:nth-child(3),
     .leaderboard td:nth-child(3) { width: 62px; text-align: right; }
+
     .leaderboard th:nth-child(4),
     .leaderboard td:nth-child(4) { width: 58px; text-align: right; }
-    .small { opacity: 0.75; font-size: 13px; }
+
+    .small {
+      opacity: 0.75;
+      font-size: 13px;
+    }
+
+    .mobile-controls {
+      display: none;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .ctrl-btn {
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      text-align: center;
+      padding: 14px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.18);
+      background: rgba(255,255,255,0.05);
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .ctrl-btn:active,
+    .ctrl-btn.active {
+      background: rgba(255,255,255,0.14);
+      transform: scale(0.98);
+    }
+
     @media (max-width: 900px) {
       .layout {
         grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .mobile-controls {
+        display: grid;
       }
     }
   </style>
@@ -128,7 +187,7 @@
         <div class="topbar">
           <div>
             <div class="title">Skumbria Defied</div>
-            <div class="sub">Скумбрийный Gravity Defied. Держи баланс, не ебнись мордой и едь дальше.</div>
+            <div class="sub">Скумбрийный триал на велике. Держи баланс, не ебнись мордой и едь дальше.</div>
           </div>
           <div class="row">
             <input id="nickname" type="text" maxlength="20" placeholder="твоя скумбрия" />
@@ -137,6 +196,13 @@
         </div>
 
         <canvas id="game" width="760" height="420"></canvas>
+
+        <div class="mobile-controls">
+          <div class="ctrl-btn" data-key="left">← корпус назад</div>
+          <div class="ctrl-btn" data-key="right">корпус вперед →</div>
+          <div class="ctrl-btn" data-key="brake">тормоз</div>
+          <div class="ctrl-btn" data-key="gas">газ</div>
+        </div>
 
         <div class="stats">
           <div class="stat">дистанция: <b id="distanceStat">0 м</b></div>
@@ -149,6 +215,7 @@
           W / ↑ — газ<br>
           S / ↓ — тормоз / задний ход<br>
           A / ← и D / → — крутить корпус<br>
+          На телефоне жми кнопки под игрой<br>
           R — рестарт
         </div>
       </div>
@@ -204,6 +271,7 @@
     const distanceStat = document.getElementById("distanceStat");
     const timeStat = document.getElementById("timeStat");
     const bestLocalStat = document.getElementById("bestLocalStat");
+    const mobileButtons = document.querySelectorAll(".ctrl-btn");
 
     const W = canvas.width;
     const H = canvas.height;
@@ -211,7 +279,7 @@
     const gravity = 0.42;
     const accel = 0.16;
     const brake = 0.12;
-    const wheelBase = 56;
+    const wheelBase = 60;
     const wheelRadius = 12;
     const bodyHeight = 18;
     const slopeProbe = 18;
@@ -314,28 +382,43 @@
         y: bike.y + sa * wheelBase / 2
       };
       const head = {
-        x: bike.x + ca * 18 - sa * (bodyHeight + 16),
-        y: bike.y + sa * 18 + ca * (bodyHeight + 16)
+        x: bike.x + ca * 18 - sa * (bodyHeight + 18),
+        y: bike.y + sa * 18 + ca * (bodyHeight + 18)
       };
       return { rear, front, head };
     }
 
+    function gasPressed() {
+      return keys["ArrowUp"] || keys["KeyW"] || keys["gas"];
+    }
+
+    function brakePressed() {
+      return keys["ArrowDown"] || keys["KeyS"] || keys["brake"];
+    }
+
+    function leanBackPressed() {
+      return keys["ArrowLeft"] || keys["KeyA"] || keys["left"];
+    }
+
+    function leanForwardPressed() {
+      return keys["ArrowRight"] || keys["KeyD"] || keys["right"];
+    }
+
     function updateBike() {
       const b = game.bike;
-      const pts = bikePoints(b);
 
       if (!game.started) {
         b.y = terrainY(b.x) - 52;
         return;
       }
 
-      if (keys["ArrowLeft"] || keys["KeyA"]) b.angVel -= 0.0042;
-      if (keys["ArrowRight"] || keys["KeyD"]) b.angVel += 0.0042;
+      if (leanBackPressed()) b.angVel -= 0.0042;
+      if (leanForwardPressed()) b.angVel += 0.0042;
 
-      if (keys["ArrowUp"] || keys["KeyW"]) {
+      if (gasPressed()) {
         b.vx += Math.cos(b.angle) * accel;
       }
-      if (keys["ArrowDown"] || keys["KeyS"]) {
+      if (brakePressed()) {
         b.vx -= Math.cos(b.angle) * brake;
       }
 
@@ -375,11 +458,11 @@
       if (contactFront || contactRear) {
         b.angle += (terrainAngle - b.angle) * 0.09;
 
-        if (keys["ArrowUp"] || keys["KeyW"]) {
+        if (gasPressed()) {
           b.vx += Math.max(0, 0.03 - Math.abs(terrainAngle) * 0.006);
         }
 
-        if (!keys["ArrowUp"] && !keys["KeyW"] && !keys["ArrowDown"] && !keys["KeyS"]) {
+        if (!gasPressed() && !brakePressed()) {
           b.vx *= 0.992;
         }
       }
@@ -474,47 +557,29 @@
 
       ctx.beginPath();
       ctx.moveTo(rearX, rearY);
-      ctx.lineTo(bodyX, bodyY - 10);
+      ctx.lineTo(bodyX - 2, bodyY - 8);
       ctx.lineTo(frontX, frontY);
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.moveTo(bodyX - 8, bodyY - 18);
-      ctx.lineTo(bodyX + 22, bodyY - 28);
+      ctx.moveTo(bodyX - 2, bodyY - 8);
+      ctx.lineTo(bodyX + 18, bodyY - 24);
       ctx.stroke();
 
       ctx.beginPath();
-      ctx.moveTo(bodyX - 2, bodyY - 4);
-      ctx.lineTo(bodyX - 18, bodyY - 20);
+      ctx.moveTo(bodyX - 2, bodyY - 8);
+      ctx.lineTo(bodyX - 16, bodyY - 24);
       ctx.stroke();
 
-      const bodyGradient = ctx.createLinearGradient(bodyX - 24, bodyY - 18, bodyX + 24, bodyY + 18);
-      bodyGradient.addColorStop(0, "#5d4638");
-      bodyGradient.addColorStop(0.45, "#8a684d");
-      bodyGradient.addColorStop(1, "#3c2d24");
-
-      ctx.fillStyle = bodyGradient;
       ctx.beginPath();
-      ctx.ellipse(bodyX, bodyY - 8, 26, 14, b.angle, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.moveTo(bodyX + 18, bodyY - 24);
+      ctx.lineTo(bodyX + 28, bodyY - 18);
+      ctx.stroke();
 
-      ctx.strokeStyle = "rgba(20,14,10,0.35)";
-      ctx.lineWidth = 2;
-      for (let i = -8; i <= 8; i += 6) {
-        ctx.beginPath();
-        ctx.moveTo(bodyX - 14, bodyY - 8 + i);
-        ctx.lineTo(bodyX + 16, bodyY - 10 + i * 0.4);
-        ctx.stroke();
-      }
-
-      ctx.fillStyle = "#fff";
       ctx.beginPath();
-      ctx.arc(bodyX + 10, bodyY - 11, 4.5, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = "#111";
-      ctx.beginPath();
-      ctx.arc(bodyX + 12, bodyY - 11, 2.1, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.moveTo(bodyX - 16, bodyY - 24);
+      ctx.lineTo(bodyX - 24, bodyY - 18);
+      ctx.stroke();
 
       function wheel(x, y) {
         ctx.fillStyle = "#222";
@@ -544,6 +609,18 @@
       ctx.beginPath();
       ctx.arc(head.x - camX, head.y, 8, 0, Math.PI * 2);
       ctx.fill();
+
+      ctx.strokeStyle = "#1d1d1d";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.moveTo(bodyX + 8, bodyY - 18);
+      ctx.lineTo(head.x - camX, head.y);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(bodyX - 10, bodyY - 16);
+      ctx.lineTo(head.x - camX - 8, head.y + 8);
+      ctx.stroke();
     }
 
     function drawHud() {
@@ -579,7 +656,7 @@
         ctx.fillText("SKUMBRIA DEFIED", 235, 175);
         ctx.font = "18px Arial";
         ctx.fillText("W/↑ газ  •  S/↓ тормоз  •  A/D баланс", 208, 208);
-        ctx.fillText("Нажми газ и не ебнись", 270, 236);
+        ctx.fillText("На телефоне жми кнопки под игрой", 220, 236);
       }
 
       if (game.over) {
@@ -587,7 +664,7 @@
         ctx.fillRect(150, 118, 460, 150);
         ctx.fillStyle = "#fff";
         ctx.font = "bold 30px Arial";
-        ctx.fillText("СКУМБРИЯ ПАЛА", 262, 162);
+        ctx.fillText("ВЕЛОСИПЕД ПАЛ", 268, 162);
         ctx.font = "22px Arial";
         ctx.fillText(`дистанция: ${distance} м`, 278, 200);
         ctx.fillText(`время: ${formatTime(Math.max(0, elapsed))}`, 298, 230);
@@ -614,7 +691,7 @@
     }
 
     function update() {
-      if (!game.started && (keys["KeyW"] || keys["ArrowUp"])) {
+      if (!game.started && gasPressed()) {
         game.started = true;
         game.startTime = performance.now();
       }
@@ -704,6 +781,35 @@
       }
     }
 
+    function setMobileKey(name, state, el) {
+      keys[name] = state;
+      if (el) {
+        if (state) el.classList.add("active");
+        else el.classList.remove("active");
+      }
+    }
+
+    mobileButtons.forEach((btn) => {
+      const key = btn.dataset.key;
+
+      const start = (e) => {
+        e.preventDefault();
+        setMobileKey(key, true, btn);
+      };
+
+      const end = (e) => {
+        e.preventDefault();
+        setMobileKey(key, false, btn);
+      };
+
+      btn.addEventListener("touchstart", start, { passive: false });
+      btn.addEventListener("touchend", end, { passive: false });
+      btn.addEventListener("touchcancel", end, { passive: false });
+      btn.addEventListener("mousedown", start);
+      btn.addEventListener("mouseup", end);
+      btn.addEventListener("mouseleave", end);
+    });
+
     window.addEventListener("keydown", (e) => {
       keys[e.code] = true;
       if (e.code === "KeyR") resetGame();
@@ -716,6 +822,7 @@
       keys[e.code] = false;
     });
 
+    canvas.addEventListener("touchstart", (e) => e.preventDefault(), { passive: false });
     restartBtn.addEventListener("click", resetGame);
 
     bestLocalStat.textContent = `${bestLocal} м`;
