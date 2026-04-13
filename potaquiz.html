@@ -223,18 +223,35 @@
   <div class="result" id="result"></div>
 </div>
 
-<script>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js";
+  import { getDatabase, ref, runTransaction } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyDHqiDJv2-zDTzZN9YLQg2hwykNKnX7qcI",
+    authDomain: "skumbria-site.firebaseapp.com",
+    databaseURL: "https://skumbria-site-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "skumbria-site",
+    storageBucket: "skumbria-site.firebasestorage.app",
+    messagingSenderId: "700612744672",
+    appId: "1:700612744672:web:22f7af4253442012ccc785",
+    measurementId: "G-73MH3SVT7D"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getDatabase(app);
+
   const icon = document.getElementById('themeIcon');
 
   function setIcon() {
     icon.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
   }
 
-  function toggleTheme() {
+  window.toggleTheme = function () {
     document.body.classList.toggle('dark');
     localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
     setIcon();
-  }
+  };
 
   if (localStorage.getItem('theme') === 'dark') {
     document.body.classList.add('dark');
@@ -242,14 +259,12 @@
 
   setIcon();
 
-  function getQuizCount() {
-    return parseInt(localStorage.getItem('potaquiz_count') || '0', 10);
-  }
-
-  function incrementQuizCount() {
-    const count = getQuizCount() + 1;
-    localStorage.setItem('potaquiz_count', count);
-    return count;
+  async function incrementGlobalCount() {
+    const countRef = ref(db, 'potaquiz_count');
+    const result = await runTransaction(countRef, (current) => {
+      return (current || 0) + 1;
+    });
+    return result.snapshot.val();
   }
 
   const correctAnswers = {
@@ -441,7 +456,7 @@
     return randomPhrase(finalDisaster);
   }
 
-  function checkQuiz() {
+  window.checkQuiz = async function () {
     let score = 0;
     let answered = 0;
     let details = "";
@@ -461,7 +476,7 @@
       }
     }
 
-    const count = incrementQuizCount();
+    const count = await incrementGlobalCount();
 
     const result = document.getElementById("result");
     result.style.display = "block";
@@ -473,15 +488,15 @@
       ${details}
     `;
     window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-  }
+  };
 
-  function resetQuiz() {
+  window.resetQuiz = function () {
     document.getElementById("quizForm").reset();
     const result = document.getElementById("result");
     result.style.display = "none";
     result.innerHTML = "";
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
+  };
 </script>
 </body>
 </html>
