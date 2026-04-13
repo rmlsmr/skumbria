@@ -281,10 +281,7 @@
     ref,
     runTransaction,
     push,
-    get,
-    query,
-    orderByChild,
-    limitToLast
+    get
   } from "https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js";
 
   const firebaseConfig = {
@@ -357,8 +354,7 @@
 
   async function loadLeaderboard() {
     try {
-      const scoresRef = query(ref(db, "potaquiz_scores"), orderByChild("score"), limitToLast(20));
-      const snapshot = await get(scoresRef);
+      const snapshot = await get(ref(db, "potaquiz_scores"));
 
       if (!snapshot.exists()) {
         leaderboardContent.innerHTML = "пока пусто. будь первой скумбрией.";
@@ -371,8 +367,10 @@
       });
 
       raw.sort((a, b) => {
-        if (b.score !== a.score) return b.score - a.score;
-        return a.createdAt - b.createdAt;
+        const scoreA = Number(a.score || 0);
+        const scoreB = Number(b.score || 0);
+        if (scoreB !== scoreA) return scoreB - scoreA;
+        return Number(a.createdAt || 0) - Number(b.createdAt || 0);
       });
 
       const top = raw.slice(0, 10);
@@ -397,8 +395,8 @@
       html += `</table>`;
       leaderboardContent.innerHTML = html;
     } catch (e) {
+      console.error("leaderboard error:", e);
       leaderboardContent.innerHTML = "не удалось загрузить топ скумбрий";
-      console.error(e);
     }
   }
 
