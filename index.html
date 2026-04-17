@@ -53,10 +53,14 @@
       color: #58a6ff;
     }
 
-    .theme-toggle {
+    .top-buttons {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
       margin-bottom: 20px;
     }
 
+    .top-buttons a,
     .theme-toggle button {
       font: inherit;
       padding: 6px 10px;
@@ -64,8 +68,13 @@
       background: transparent;
       color: inherit;
       cursor: pointer;
+      border-radius: 8px;
+      min-width: 44px;
+      text-decoration: none;
+      display: inline-block;
     }
 
+    body.dark .top-buttons a,
     body.dark .theme-toggle button {
       border-color: #666;
     }
@@ -75,8 +84,11 @@
 <body>
 <div class="wrap">
 
-<div class="theme-toggle">
-  <button onclick="toggleTheme()">тема: день / ночь</button>
+<div class="top-buttons">
+  <a href="mudro.html">получить копчение</a>
+  <div class="theme-toggle">
+    <button onclick="toggleTheme()" id="themeBtn">🌙</button>
+  </div>
 </div>
 
 <h1>ПОТАСКУМБРИЯ</h1>
@@ -149,19 +161,28 @@
   <img src="skumbria_ski.jpg">
   <img src="skumbria_kayak.jpg">
 </div>
- (<a href="quiz.html" target="_blank">Квиз</a>)  (<a href="potaquiz.html" target="_blank">ПотаКвиз</a>)  (<a href="mudro.html" target="_blank">Мудрый Рыб</a>)
-  <br>
+(<a href="quiz.html" target="_blank">Квиз</a>)  (<a href="potaquiz.html" target="_blank">ПотаКвиз</a>)  (<a href="mudro.html" target="_blank">Мудрый Рыб</a>)
+<br>
 </div>
 
 <script>
+  const themeBtn = document.getElementById('themeBtn');
+
+  function setThemeIcon() {
+    themeBtn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+  }
+
   function toggleTheme() {
     document.body.classList.toggle('dark');
     localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+    setThemeIcon();
   }
 
   if (localStorage.getItem('theme') === 'dark') {
     document.body.classList.add('dark');
   }
+
+  setThemeIcon();
 </script>
 </body>
 </html>
