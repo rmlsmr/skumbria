@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Скумбрак</title>
+  <link rel="icon" href="favicon.png" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      color: #222;
+    }
+    body.dark {
+      background: #0d1117;
+      color: #c9d1d9;
+    }
+    .page {
+      max-width: 620px;
+      margin: 0 auto;
+      padding: 10px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .title {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .sub {
+      margin-top: 4px;
+      opacity: 0.8;
+      font-size: 13px;
+      line-height: 1.3;
+    }
+    .btn, .theme-btn, .action-btn {
+      font: inherit;
+      color: inherit;
+      background: transparent;
+      border: 1px solid rgba(120,120,120,0.55);
+      border-radius: 12px;
+      padding: 10px 12px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      gap: 6px;
+    }
+    .action-btn.big {
+      min-height: 50px;
+      font-weight: 700;
+    }
+    .action-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .panel {
+      background: rgba(255,255,255,0.45);
+      border-radius: 16px;
+      border: 1px solid rgba(120,120,120,0.18);
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    body.dark .panel {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(255,255,255,0.08);
+    }
+    .panel-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .input {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid rgba(120,120,120,0.35);
+      border-radius: 12px;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      padding: 10px 12px;
+    }
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .grid3 {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+    .status {
+      margin-top: 8px;
+      font-size: 13px;
+      line-height: 1.35;
+      opacity: 0.84;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+    .stat {
+      border: 1px solid rgba(120,120,120,0.18);
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-size: 13px;
+      line-height: 1.3;
+    }
+    .table-zone {
+      display: grid;
+      gap: 10px;
+    }
+    .trump-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      border: 1px solid rgba(120,120,120,0.18);
+      border-radius: 12px;
+      padding: 10px;
+    }
+    .deck-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(120,120,120,0.2);
+      font-size: 13px;
+    }
+    .table-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .pair {
+      border: 1px solid rgba(120,120,120,0.18);
+      border-radius: 12px;
+      padding: 8px;
+      min-height: 104px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      align-items: start;
+    }
+    .card {
+      border: 2px solid rgba(31,31,31,0.18);
+      border-radius: 12px;
+      background: #fffaf0;
+      color: #1f1f1f;
+      min-height: 92px;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      user-select: none;
+    }
+    .card.red-suit { color: #c81d25; }
+    .card.empty {
+      background: rgba(255,255,255,0.08);
+      color: inherit;
+      border-style: dashed;
+      min-height: 92px;
+      justify-content: center;
+      align-items: center;
+      opacity: 0.7;
+    }
+    .card.small {
+      min-height: 86px;
+    }
+    .card.selected {
+      box-shadow: inset 0 0 0 3px rgba(0,102,204,0.35);
+      transform: translateY(-2px);
+    }
+    .rank {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .suit {
+      font-size: 22px;
+      line-height: 1;
+    }
+    .corner-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+    .corner-bottom {
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-end;
+      transform: rotate(180deg);
+    }
+    .my-hand {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .players-list, .log-list {
+      display: grid;
+      gap: 8px;
+      max-height: 220px;
+      overflow: auto;
+    }
+    .player-card, .log-item {
+      border: 1px solid rgba(120,120,120,0.18);
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .player-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .player-name {
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .player-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.25);
+      flex: 0 0 auto;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 11px;
+      border: 1px solid rgba(120,120,120,0.25);
+    }
+    .turn { background: rgba(0,102,204,0.12); }
+    .me { background: rgba(27,163,74,0.12); }
+    .target { background: rgba(216,138,29,0.12); }
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 14px;
+      z-index: 999;
+    }
+    .overlay.open { display: flex; }
+    .overlay-card {
+      width: 100%;
+      max-width: 420px;
+      background: #fff8e8;
+      color: #222;
+      border-radius: 18px;
+      padding: 18px;
+      border: 3px solid #1f1f1f;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.35);
+      transform: rotate(-2deg);
+    }
+    .overlay-card h2 {
+      margin: 0 0 10px 0;
+      font-size: 24px;
+    }
+    .overlay-card p {
+      margin: 0 0 14px 0;
+      line-height: 1.45;
+      font-size: 15px;
+    }
+    .help {
+      font-size: 12px;
+      opacity: 0.72;
+      line-height: 1.35;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div>
+        <h1 class="title">Скумбрак</h1>
+        <div class="sub">Мобильный многопользовательский дурак со скумбрийными картами и копчекоинами</div>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <a class="btn" href="index.html">назад</a>
+        <button class="theme-btn" id="themeBtn" type="button">🌙</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Вход</div>
+      <input id="nickInput" class="input" type="text" maxlength="24" placeholder="ник скумбрии" />
+      <div class="grid2" style="margin-top:8px;">
+        <button class="action-btn" id="createRoomBtn" type="button">создать комнату</button>
+        <button class="action-btn" id="joinRoomBtn" type="button">войти</button>
+      </div>
+      <input id="roomCodeInput" class="input" type="text" maxlength="6" placeholder="код комнаты" style="margin-top:8px;" />
+      <div class="status" id="statusText">Ник уникальный. Если копчекоины кончатся, под этим ником дальше не зайдешь.</div>
+    </div>
+
+    <div class="panel">
+      <div class="stats">
+        <div class="stat">Комната<br><b id="roomCodeLabel">—</b></div>
+        <div class="stat">Копчекоины<br><b id="coinsLabel">—</b></div>
+        <div class="stat">Фаза<br><b id="phaseLabel">—</b></div>
+        <div class="stat">Ходит<br><b id="turnLabel">—</b></div>
+        <div class="stat">Защищается<br><b id="defenderLabel">—</b></div>
+        <div class="stat">Карт в колоде<br><b id="deckLabel">—</b></div>
+      </div>
+    </div>
+
+    <div class="panel table-zone">
+      <div class="trump-box">
+        <div>
+          <div class="panel-title" style="margin:0 0 4px 0;">Стол</div>
+          <div class="status" id="roundInfo">Ждем, пока стая соберется.</div>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <div class="deck-pill">козырь <b id="trumpLabel">—</b></div>
+          <div class="deck-pill">подменный <b id="swapLabel">—</b></div>
+        </div>
+      </div>
+
+      <div class="table-cards" id="tableCards">
+        <div class="pair"><div class="card empty">пусто</div><div class="card empty">пусто</div></div>
+      </div>
+
+      <div class="grid3">
+        <button class="action-btn big" id="playBtn" type="button" disabled>сыграть</button>
+        <button class="action-btn big" id="defendBtn" type="button" disabled>побить</button>
+        <button class="action-btn big" id="transferBtn" type="button" disabled>перевести</button>
+        <button class="action-btn big" id="takeBtn" type="button" disabled>забрать</button>
+        <button class="action-btn big" id="doneBtn" type="button" disabled>отбой</button>
+        <button class="action-btn big" id="swapBtn" type="button" disabled>подменить козырь</button>
+      </div>
+      <div class="help">Подменный козырь: если у тебя есть минимальный козырь, можешь обменять его на открытую козырную карту, пока колода не пустая.</div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Твоя рука</div>
+      <div class="my-hand" id="myHand"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Игроки</div>
+      <div class="players-list" id="playersList"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">Лог</div>
+      <div class="log-list" id="logList"></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="overlay-card">
+      <h2 id="overlayTitle">Шанс</h2>
+      <p id="overlayText"></p>
+      <div class="grid2">
+        <button class="action-btn" id="overlayOkBtn" type="button">понял</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js';
+    import { getDatabase, ref, get, set, update, onValue, runTransaction } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js';
+
+    const firebaseConfig = {
+      apiKey: 'AIzaSyDHqiDJv2-zDTzZN9YLQg2hwykNKnX7qcI',
+      authDomain: 'skumbria-site.firebaseapp.com',
+      databaseURL: 'https://skumbria-site-default-rtdb.europe-west1.firebasedatabase.app',
+      projectId: 'skumbria-site',
+      storageBucket: 'skumbria-site.firebasestorage.app',
+      messagingSenderId: '700612744672',
+      appId: '1:700612744672:web:22f7af4253442012ccc785',
+      measurementId: 'G-73MH3SVT7D'
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const ENTRY_COST = 1;
+    const WIN_REWARD = 3;
+    const LOSE_PENALTY = 2;
+    const PLAYER_COLORS = ['#d63b36', '#2f7df7', '#1ba34a', '#8d54d6', '#d98a1d'];
+    const SUITS = ['♠', '♥', '♦', '♣'];
+    const RED_SUITS = new Set(['♥', '♦']);
+    const RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+    const RANK_VALUE = Object.fromEntries(RANKS.map((r, i) => [r, i]));
+
+    const themeBtn = document.getElementById('themeBtn');
+    const nickInput = document.getElementById('nickInput');
+    const createRoomBtn = document.getElementById('createRoomBtn');
+    const joinRoomBtn = document.getElementById('joinRoomBtn');
+    const roomCodeInput = document.getElementById('roomCodeInput');
+    const statusText = document.getElementById('statusText');
+    const roomCodeLabel = document.getElementById('roomCodeLabel');
+    const coinsLabel = document.getElementById('coinsLabel');
+    const phaseLabel = document.getElementById('phaseLabel');
+    const turnLabel = document.getElementById('turnLabel');
+    const defenderLabel = document.getElementById('defenderLabel');
+    const deckLabel = document.getElementById('deckLabel');
+    const roundInfo = document.getElementById('roundInfo');
+    const trumpLabel = document.getElementById('trumpLabel');
+    const swapLabel = document.getElementById('swapLabel');
+    const tableCards = document.getElementById('tableCards');
+    const myHand = document.getElementById('myHand');
+    const playersList = document.getElementById('playersList');
+    const logList = document.getElementById('logList');
+    const playBtn = document.getElementById('playBtn');
+    const defendBtn = document.getElementById('defendBtn');
+    const transferBtn = document.getElementById('transferBtn');
+    const takeBtn = document.getElementById('takeBtn');
+    const doneBtn = document.getElementById('doneBtn');
+    const swapBtn = document.getElementById('swapBtn');
+    const overlay = document.getElementById('overlay');
+    const overlayTitle = document.getElementById('overlayTitle');
+    const overlayText = document.getElementById('overlayText');
+    const overlayOkBtn = document.getElementById('overlayOkBtn');
+
+    const deviceId = getOrCreateDeviceId();
+    let roomCode = localStorage.getItem('skumbrak_room') || '';
+    let roomUnsub = null;
+    let currentRoom = null;
+    let selectedHandCard = null;
+    let selectedAttackIndex = null;
+
+    nickInput.value = localStorage.getItem('skumbrak_nick') || '';
+    if (roomCode) roomCodeInput.value = roomCode;
+
+    function getOrCreateDeviceId() {
+      let id = localStorage.getItem('skumbrak_device_id');
+      if (!id) {
+        id = 'd_' + Math.random().toString(36).slice(2, 11);
+        localStorage.setItem('skumbrak_device_id', id);
+      }
+      return id;
+    }
+
+    function normalizeNick(nick) {
+      return nick.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-zа-яё0-9_\-]/gi, '');
+    }
+
+    function playerProfileRef(nickKey) {
+      return ref(db, `skumbrak_players/${nickKey}`);
+    }
+
+    function roomRef(code) {
+      return ref(db, `skumbrak_rooms/${code}`);
+    }
+
+    function showOverlay(title, text) {
+      overlayTitle.textContent = title;
+      overlayText.textContent = text;
+      overlay.classList.add('open');
+    }
+
+    function hideOverlay() {
+      overlay.classList.remove('open');
+    }
+
+    function setThemeIcon() {
+      themeBtn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+      setThemeIcon();
+    }
+
+    themeBtn.addEventListener('click', toggleTheme);
+    if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+    setThemeIcon();
+
+    function cardCode(rank, suit) {
+      return `${rank}${suit}`;
+    }
+
+    function parseCard(code) {
+      const suit = code.slice(-1);
+      const rank = code.slice(0, -1);
+      return { code, rank, suit };
+    }
+
+    function deck52() {
+      const deck = [];
+      for (const suit of SUITS) {
+        for (const rank of RANKS) deck.push(cardCode(rank, suit));
+      }
+      return deck;
+    }
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function sortHand(hand, trumpSuit) {
+      return [...hand].sort((a, b) => {
+        const ca = parseCard(a);
+        const cb = parseCard(b);
+        const ta = ca.suit === trumpSuit ? 1 : 0;
+        const tb = cb.suit === trumpSuit ? 1 : 0;
+        if (ta !== tb) return ta - tb;
+        if (ca.suit !== cb.suit) return SUITS.indexOf(ca.suit) - SUITS.indexOf(cb.suit);
+        return RANK_VALUE[ca.rank] - RANK_VALUE[cb.rank];
+      });
+    }
+
+    function beats(defenseCode, attackCode, trumpSuit) {
+      const d = parseCard(defenseCode);
+      const a = parseCard(attackCode);
+      if (d.suit === a.suit && RANK_VALUE[d.rank] > RANK_VALUE[a.rank]) return true;
+      if (d.suit === trumpSuit && a.suit !== trumpSuit) return true;
+      return false;
+    }
+
+    function getLowestTrumpCard(hand, trumpSuit) {
+      const trumps = hand.filter(c => parseCard(c).suit === trumpSuit);
+      if (!trumps.length) return null;
+      return trumps.sort((a, b) => RANK_VALUE[parseCard(a).rank] - RANK_VALUE[parseCard(b).rank])[0];
+    }
+
+    function makeRoomCode() {
+      return Math.random().toString(36).slice(2, 6).toUpperCase();
+    }
+
+    function getNickData() {
+      const name = nickInput.value.trim();
+      const key = normalizeNick(name);
+      if (!name || !key) return null;
+      return { name, key };
+    }
+
+    async function ensureProfile(name, key) {
+      const snap = await get(playerProfileRef(key));
+      if (!snap.exists()) {
+        await set(playerProfileRef(key), {
+          name,
+          nickKey: key,
+          coins: 10,
+          createdAt: Date.now(),
+          deviceId,
+          lastSeenAt: Date.now()
+        });
+        return { name, nickKey: key, coins: 10, deviceId };
+      }
+      const profile = snap.val();
+      if ((profile.coins || 0) <= 0) {
+        throw new Error('Копчекоины кончились. Под этим ником дальше не зайти.');
+      }
+      return profile;
+    }
+
+    function createWaitingRoom(code, name, key, coins) {
+      return {
+        createdAt: Date.now(),
+        host: key,
+        status: 'waiting',
+        lastAction: `${name} создал комнату ${code}.`,
+        players: {
+          [key]: {
+            name,
+            nickKey: key,
+            deviceId,
+            coins,
+            seat: 0,
+            color: PLAYER_COLORS[0],
+            online: true,
+            joinedAt: Date.now(),
+            handCount: 0,
+            finished: false
+          }
+        },
+        order: [key],
+        game: null,
+        log: {
+          [Date.now()]: `${name} создал комнату ${code}.`
+        }
+      };
+    }
+
+    async function createRoom() {
+      const nick = getNickData();
+      if (!nick) {
+        statusText.textContent = 'Сначала введи ник.';
+        return;
+      }
+      localStorage.setItem('skumbrak_nick', nick.name);
+      createRoomBtn.disabled = true;
+      try {
+        const profile = await ensureProfile(nick.name, nick.key);
+        let code = makeRoomCode();
+        let tries = 0;
+        while (tries < 10) {
+          const snap = await get(roomRef(code));
+          if (!snap.exists()) break;
+          code = makeRoomCode();
+          tries++;
+        }
+        await set(roomRef(code), createWaitingRoom(code, nick.name, nick.key, profile.coins));
+        roomCodeInput.value = code;
+        connectRoom(code);
+      } catch (e) {
+        statusText.textContent = e.message || 'Не удалось создать комнату.';
+      } finally {
+        createRoomBtn.disabled = false;
+      }
+    }
+
+    async function joinRoom() {
+      const nick = getNickData();
+      if (!nick) {
+        statusText.textContent = 'Сначала введи ник.';
+        return;
+      }
+      const code = roomCodeInput.value.trim().toUpperCase();
+      if (!code) {
+        statusText.textContent = 'Введи код комнаты.';
+        return;
+      }
+      localStorage.setItem('skumbrak_nick', nick.name);
+      joinRoomBtn.disabled = true;
+      try {
+        const profile = await ensureProfile(nick.name, nick.key);
+        const snap = await get(roomRef(code));
+        if (!snap.exists()) throw new Error('Комната не найдена.');
+        const room = snap.val();
+        const players = room.players || {};
+        const order = room.order || [];
+        if (!players[nick.key] && order.length >= 5) throw new Error('Комната уже полная.');
+        if (!players[nick.key]) {
+          await update(roomRef(code), {
+            [`players/${nick.key}`]: {
+              name: nick.name,
+              nickKey: nick.key,
+              deviceId,
+              coins: profile.coins,
+              seat: order.length,
+              color: PLAYER_COLORS[order.length % PLAYER_COLORS.length],
+              online: true,
+              joinedAt: Date.now(),
+              handCount: 0,
+              finished: false
+            },
+            order: [...order, nick.key],
+            [`log/${Date.now()}`]: `${nick.name} вошел в комнату.`
+          });
+        } else {
+          await update(roomRef(code), {
+            [`players/${nick.key}/online`]: true,
+            [`players/${nick.key}/deviceId`]: deviceId,
+            [`players/${nick.key}/name`]: nick.name,
+            [`log/${Date.now()}`]: `${nick.name} вернулся в комнату.`
+          });
+        }
+        connectRoom(code);
+      } catch (e) {
+        statusText.textContent = e.message || 'Не удалось войти в комнату.';
+      } finally {
+        joinRoomBtn.disabled = false;
+      }
+    }
+
+    function connectRoom(code) {
+      if (roomUnsub) roomUnsub();
+      roomCode = code;
+      localStorage.setItem('skumbrak_room', code);
+      roomCodeLabel.textContent = code;
+      statusText.textContent = `Подключено к комнате ${code}.`;
+      roomUnsub = onValue(roomRef(code), snap => {
+        if (!snap.exists()) {
+          currentRoom = null;
+          statusText.textContent = 'Комната исчезла.';
+          return;
+        }
+        currentRoom = snap.val();
+        renderRoom();
+      });
+    }
+
+    function getPlayersOrdered() {
+      if (!currentRoom) return [];
+      const players = currentRoom.players || {};
+      return (currentRoom.order || []).map(k => players[k]).filter(Boolean);
+    }
+
+    function getMeKey() {
+      const nick = getNickData();
+      return nick?.key || '';
+    }
+
+    function getMe() {
+      return currentRoom?.players?.[getMeKey()] || null;
+    }
+
+    function game() {
+      return currentRoom?.game || null;
+    }
+
+    function activeKeys(room) {
+      const g = room?.game;
+      if (!g) return [];
+      return (room.order || []).filter(k => !g.finished?.[k]);
+    }
+
+    function nextActive(room, key) {
+      const actives = activeKeys(room);
+      if (!actives.length) return key;
+      const idx = actives.indexOf(key);
+      if (idx === -1) return actives[0];
+      return actives[(idx + 1) % actives.length];
+    }
+
+    function currentTurnKey() {
+      return game()?.attacker || '';
+    }
+
+    function currentDefenderKey() {
+      return game()?.defender || '';
+    }
+
+    function isMyTurnToAttack() {
+      const me = getMeKey();
+      const g = game();
+      if (!g) return false;
+      if (g.phase !== 'attack' && g.phase !== 'throwin') return false;
+      return me !== g.defender && activeKeys(currentRoom).includes(me);
+    }
+
+    function isMyTurnToDefend() {
+      const me = getMeKey();
+      const g = game();
+      if (!g) return false;
+      return g.defender === me && (g.phase === 'defense' || g.phase === 'attack' || g.phase === 'throwin');
+    }
+
+    function minimalTrumpRank() {
+      return '2';
+    }
+
+    function createGameFromRoom(room) {
+      const order = room.order || [];
+      const shuffled = shuffle(deck52());
+      const hands = {};
+      order.forEach(k => hands[k] = []);
+      for (let round = 0; round < 6; round++) {
+        order.forEach(k => {
+          if (shuffled.length) hands[k].push(shuffled.shift());
+        });
+      }
+      const bottomTrump = shuffled[shuffled.length - 1];
+      const trumpSuit = parseCard(bottomTrump).suit;
+      Object.keys(hands).forEach(k => hands[k] = sortHand(hands[k], trumpSuit));
+      let lowest = null;
+      let attacker = order[0];
+      order.forEach(k => {
+        const lowTrump = getLowestTrumpCard(hands[k], trumpSuit);
+        if (!lowTrump) return;
+        if (!lowest || RANK_VALUE[parseCard(lowTrump).rank] < RANK_VALUE[parseCard(lowest).rank]) {
+          lowest = lowTrump;
+          attacker = k;
+        }
+      });
+      const defender = nextActive({ ...room, game: { finished: {} } }, attacker);
+      return {
+        startedAt: Date.now(),
+        phase: 'attack',
+        attacker,
+        defender,
+        hands,
+        deck: shuffled,
+        trumpSuit,
+        bottomTrump,
+        discard: [],
+        table: [],
+        finished: {},
+        winners: [],
+        loser: null,
+        pendingTake: false
+      };
+    }
+
+    async function maybeAutoStart() {
+      if (!currentRoom || currentRoom.status !== 'waiting') return;
+      const me = getMe();
+      const players = getPlayersOrdered();
+      if (!me) return;
+      if (players.length < 2) return;
+      if (currentRoom.host !== getMeKey()) return;
+      await runTransaction(roomRef(roomCode), room => {
+        if (!room || room.status !== 'waiting') return room;
+        const playersArr = (room.order || []).map(k => room.players?.[k]).filter(Boolean);
+        if (playersArr.length < 2) return room;
+        room.status = 'playing';
+        room.game = createGameFromRoom(room);
+        room.lastAction = 'Партия началась.';
+        room.log = room.log || {};
+        room.log[`${Date.now()}`] = 'Партия началась.';
+        playersArr.forEach(p => { p.handCount = room.game.hands[p.nickKey].length; });
+        return room;
+      });
+    }
+
+    function allAttackRanks(table) {
+      const set = new Set();
+      table.forEach(p => {
+        if (p.attack) set.add(parseCard(p.attack).rank);
+        if (p.defense) set.add(parseCard(p.defense).rank);
+      });
+      return set;
+    }
+
+    function unresolvedPairs(table) {
+      return table.filter(p => !p.defense);
+    }
+
+    function defenderCapacity(room) {
+      const g = room.game;
+      const defenderHand = g.hands[g.defender] || [];
+      return defenderHand.length;
+    }
+
+    function canAttackWith(room, playerKey, cardCode) {
+      const g = room.game;
+      if (!g || !g.hands[playerKey]?.includes(cardCode)) return false;
+      if (playerKey === g.defender) return false;
+      const table = g.table || [];
+      const capacity = defenderCapacity(room);
+      if (table.length >= capacity) return false;
+      if (table.length === 0) return playerKey === g.attacker;
+      const ranks = allAttackRanks(table);
+      return ranks.has(parseCard(cardCode).rank);
+    }
+
+    function canTransferWith(room, playerKey, cardCode) {
+      const g = room.game;
+      if (!g || playerKey !== g.defender) return false;
+      if (!g.hands[playerKey]?.includes(cardCode)) return false;
+      const table = g.table || [];
+      if (!table.length) return false;
+      if (table.some(p => p.defense)) return false;
+      const firstRank = parseCard(table[0].attack).rank;
+      if (parseCard(cardCode).rank !== firstRank) return false;
+      const nextDef = nextActive(room, g.defender);
+      if (nextDef === g.defender) return false;
+      const nextDefHand = g.hands[nextDef] || [];
+      return nextDefHand.length >= table.length + 1;
+    }
+
+    function canSwapTrump(room, playerKey) {
+      const g = room.game;
+      if (!g || !g.deck?.length) return false;
+      const hand = g.hands[playerKey] || [];
+      return hand.includes(minimalTrumpRank() + g.trumpSuit);
+    }
+
+    function refillHands(room) {
+      const g = room.game;
+      const order = [];
+      let cur = g.attacker;
+      const actives = activeKeys(room);
+      if (!actives.length) return;
+      do {
+        if (!g.finished[cur]) order.push(cur);
+        cur = nextActive(room, cur);
+      } while (cur !== g.attacker && order.length <= actives.length + 1);
+
+      order.forEach(k => {
+        while ((g.hands[k] || []).length < 6 && g.deck.length) {
+          g.hands[k].push(g.deck.shift());
+        }
+        g.hands[k] = sortHand(g.hands[k], g.trumpSuit);
+      });
+    }
+
+    function markFinished(room) {
+      const g = room.game;
+      const actives = activeKeys(room);
+      actives.forEach(k => {
+        if ((g.hands[k] || []).length === 0 && g.deck.length === 0) {
+          g.finished[k] = true;
+          if (!g.winners.includes(k)) g.winners.push(k);
+        }
+      });
+      const still = activeKeys(room);
+      if (still.length === 1) {
+        g.loser = still[0];
+        room.status = 'finished';
+      }
+    }
+
+    async function playAttackCard() {
+      if (!currentRoom || !selectedHandCard) return;
+      const meKey = getMeKey();
+      await runTransaction(roomRef(roomCode), room => {
+        if (!room || room.status !== 'playing') return room;
+        const g = room.game;
+        if (!canAttackWith(room, meKey, selectedHandCard)) return room;
+        g.hands[meKey] = g.hands[meKey].filter(c => c !== selectedHandCard);
+        g.table.push({ attack: selectedHandCard, defense: null, by: meKey });
+        g.phase = 'defense';
+        room.players[meKey].handCount = g.hands[meKey].length;
+        room.lastAction = `${room.players[meKey].name} зашел картой ${selectedHandCard}.`;
+        room.log[`${Date.now()}_${Math.random().toString(36).slice(2, 6)}`] = room.lastAction;
+        return room;
+      });
+      selectedHandCard = null;
+    }
+
+    async function defendSelected() {
+      if (!currentRoom || !selectedHandCard || selectedAttackIndex === null) return;
+      const meKey = getMeKey();
+      await runTransaction(roomRef(roomCode), room => {
+        if (!room || room.status !== 'playing') return room;
+        const g = room.game;
+        if (g.defender !== meKey) return room;
+        const pair = g.table[selectedAttackIndex];
+        if (!pair || pair.defense) return room;
+        if (!g.hands[meKey]?.includes(selectedHandCard)) return room;
+        if (!beats(selectedHandCard, pair.attack, g.trumpSuit)) return room;
+        g.hands[meKey] = g.hands[meKey].filter(c => c !== selectedHandCard);
+        pair.defense = selectedHandCard;
+        room.players[meKey].handCount = g.hands[meKey].length;
+        g.phase = unresolvedPairs(g.table).length ? 'defense' : 'throwin';
+        room.lastAction = `${room.players[meKey].name} побил ${pair.attack} картой ${selectedHandCard}.`;
+        room.log[`${Date.now()}_${Math.random().toString(36).slice(2, 6)}`] = room.lastAction;
+        return room;
+      });
+      selectedHandCard = null;
+      selectedAttackIndex = null;
+    }
+
+    async function transferSelected() {
+      if (!currentRoom || !selectedHandCard) return;
+      const meKey = getMeKey();
+      await runTransaction(roomRef(roomCode), room => {
+        if (!room || room.status !== 'playing') return room;
+        if (!canTransferWith(room, meKey, selectedHandCard)) return room;
+        const g = room.game;
+        g.hands[meKey] = g.hands[meKey].filter(c => c !== selectedHandCard);
+        g.table.push({ attack: selectedHandCard, defense: null, by: meKey });
+        room.players[meKey].handCount = g.hands[meKey].length;
+        g.attacker = g.defender;
+        g.defender = nextActive(room, g.defender);
+        g.phase = 'defense';
+        room.lastAction = `${room.players[meKey].name} перевел атаку картой ${selectedHandCard}.`;
+        room.log[`${Date.now()}_${Math.random().toString(36).slice(2, 6)}`] = room.lastAction;
+        return room;
+      });
+      selectedHandCard = null;
+    }
+
+    async function takeTable() {
+      if (!currentRoom) return;
+      const meKey = getMeKey();
+      await runTransaction(roomRef(roomCode), room => {
+        if (!room || room.status !== 'playing') return room;
+        const g = room.game;
+        if (g.defender !== meKey) return room;
+        const allCards = [];
+        g.table.forEach(p => {
+          allCards.push(p.attack);
+          if (p.defense) allCards.push(p.defense);
+        });
+        g.hands[meKey].push(...allCards);
+        g.hands[meKey] = sortHand(g.hands[meKey], g.trumpSuit);
+        room.players[meKey].handCount = g.hands[meKey].length;
+        g.table = [];
+        refillHands(room);
+        Object.keys(room.players).forEach(k => room.players[k].handCount = g.hands[k]?.length || 0);
+        g.defender = nextActive(room, g.defender);
+        g.attacker = nextActive(room, g.defender);
+        g.phase = 'attack';
+        room.lastAction = `${room.players[meKey].name} забрал карты.`;
+        room.log[`${Date.now()}_${Math.random().toString(36).slice(2, 6)}`] = room.lastAction;
+        markFinished(room);
+        return room;
+      });
+    }
+
+    async function doneRound() {
+      if (!currentRoom) return;
+      await runTransaction(roomRef(roomCode), room => {
+        if (!room || room.status !== 'playing') return room;
+        const g = room.game;
+        if (unresolvedPairs(g.table).length) return room;
+        if (g.defender !== getMeKey()) return room;
+        const cards = [];
+        g.table.forEach(p => {
+          cards.push(p.attack);
+          if (p.defense) cards.push(p.defense);
+        });
+        g.discard.push(...cards);
+        g.table = [];
+        refillHands(room);
+        Object.keys(room.players).forEach(k => room.players[k].handCount = g.hands[k]?.length || 0);
+        g.attacker = g.defender;
+        g.defender = nextActive(room, g.attacker);
+        g.phase = 'attack';
+        room.lastAction = `${room.players[getMeKey()].name} объявил отбой.`;
+        room.log[`${Date.now()}_${Math.random().toString(36).slice(2, 6)}`] = room.lastAction;
+        markFinished(room);
+        return room;
+      });
+    }
+
+    async function swapTrump() {
+      if (!currentRoom) return;
+      const meKey = getMeKey();
+      await runTransaction(roomRef(roomCode), room => {
+        if (!room || room.status !== 'playing') return room;
+        const g = room.game;
+        if (!canSwapTrump(room, meKey)) return room;
+        const minimal = minimalTrumpRank() + g.trumpSuit;
+        g.hands[meKey] = g.hands[meKey].filter(c => c !== minimal);
+        g.hands[meKey].push(g.bottomTrump);
+        g.bottomTrump = minimal;
+        g.hands[meKey] = sortHand(g.hands[meKey], g.trumpSuit);
+        room.players[meKey].handCount = g.hands[meKey].length;
+        room.lastAction = `${room.players[meKey].name} подменил козырь.`;
+        room.log[`${Date.now()}_${Math.random().toString(36).slice(2, 6)}`] = room.lastAction;
+        return room;
+      });
+    }
+
+    async function settleFinishedGame() {
+      if (!currentRoom || currentRoom.status !== 'finished' || currentRoom.settled) return;
+      const meKey = getMeKey();
+      if (currentRoom.host !== meKey) return;
+      const loser = currentRoom.game?.loser;
+      const winners = currentRoom.game?.winners || [];
+      const updates = { [`skumbrak_rooms/${roomCode}/settled`]: true };
+      const players = currentRoom.players || {};
+      Object.values(players).forEach(p => {
+        const basePath = `skumbrak_players/${p.nickKey}`;
+        const currentCoins = Math.max(0, p.coins || 0);
+        let delta = 0;
+        if (winners.includes(p.nickKey)) delta += WIN_REWARD;
+        if (p.nickKey === loser) delta -= LOSE_PENALTY;
+        updates[`${basePath}/coins`] = Math.max(0, currentCoins + delta);
+        updates[`${basePath}/lastSeenAt`] = Date.now();
+      });
+      await update(ref(db), updates);
+      const loserName = players[loser]?.name || 'кто-то';
+      showOverlay('Партия окончена', `Дураком остался ${loserName}. Победители получили по ${WIN_REWARD}, дурак потерял ${LOSE_PENALTY}.`);
+    }
+
+    function renderRoom() {
+      maybeAutoStart();
+      renderPlayers();
+      renderLog();
+      renderGame();
+      if (currentRoom?.status === 'finished') settleFinishedGame();
+    }
+
+    function renderPlayers() {
+      const players = getPlayersOrdered();
+      if (!players.length) {
+        playersList.innerHTML = '<div class="player-card">Пока никого.</div>';
+        return;
+      }
+      const turn = currentTurnKey();
+      const defender = currentDefenderKey();
+      playersList.innerHTML = '';
+      players.forEach(p => {
+        const el = document.createElement('div');
+        el.className = 'player-card';
+        el.innerHTML = `
+          <div class="player-row">
+            <div class="player-name"><span class="player-color" style="background:${p.color};"></span>${escapeHtml(p.name)}</div>
+            <div>
+              ${p.nickKey === turn ? '<span class="badge turn">ходит</span>' : ''}
+              ${p.nickKey === defender ? '<span class="badge target">защита</span>' : ''}
+              ${p.nickKey === getMeKey() ? '<span class="badge me">ты</span>' : ''}
+            </div>
+          </div>
+          <div>карт: ${p.handCount || 0} • копчекоины: ${p.coins || 0}</div>
+        `;
+        playersList.appendChild(el);
+      });
+    }
+
+    function renderLog() {
+      const logs = Object.values(currentRoom?.log || {}).slice(-12).reverse();
+      if (!logs.length) {
+        logList.innerHTML = '<div class="log-item">Лог пуст.</div>';
+        return;
+      }
+      logList.innerHTML = '';
+      logs.forEach(item => {
+        const el = document.createElement('div');
+        el.className = 'log-item';
+        el.textContent = item;
+        logList.appendChild(el);
+      });
+    }
+
+    function cardHtml(code, selected = false, small = false) {
+      if (!code) return '<div class="card empty">пусто</div>';
+      const c = parseCard(code);
+      const red = RED_SUITS.has(c.suit) ? ' red-suit' : '';
+      const sel = selected ? ' selected' : '';
+      const size = small ? ' small' : '';
+      return `
+        <div class="card${red}${sel}${size}" data-card="${code}">
+          <div class="corner-top"><div class="rank">${c.rank}</div><div class="suit">${c.suit}</div></div>
+          <div class="corner-bottom"><div class="rank">${c.rank}</div><div class="suit">${c.suit}</div></div>
+        </div>
+      `;
+    }
+
+    function renderGame() {
+      const g = game();
+      const me = getMe();
+      const meKey = getMeKey();
+      coinsLabel.textContent = me ? String(me.coins || 0) : '—';
+      if (!g) {
+        phaseLabel.textContent = currentRoom?.status || 'ожидание';
+        turnLabel.textContent = '—';
+        defenderLabel.textContent = '—';
+        deckLabel.textContent = '—';
+        roundInfo.textContent = 'Ждем, пока стая соберется.';
+        trumpLabel.textContent = '—';
+        swapLabel.textContent = '—';
+        tableCards.innerHTML = '<div class="pair"><div class="card empty">пусто</div><div class="card empty">пусто</div></div>';
+        myHand.innerHTML = '<div class="card empty">нет карт</div>';
+        disableAllActions();
+        return;
+      }
+
+      phaseLabel.textContent = g.phase;
+      turnLabel.textContent = currentRoom.players?.[g.attacker]?.name || '—';
+      defenderLabel.textContent = currentRoom.players?.[g.defender]?.name || '—';
+      deckLabel.textContent = String(g.deck?.length || 0);
+      trumpLabel.textContent = g.trumpSuit || '—';
+      swapLabel.textContent = g.bottomTrump || '—';
+      roundInfo.textContent = currentRoom.lastAction || 'Игра идет.';
+
+      renderTable(g);
+      renderHand(g, meKey);
+      updateActionButtons(g, meKey);
+    }
+
+    function renderTable(g) {
+      const pairs = g.table || [];
+      if (!pairs.length) {
+        tableCards.innerHTML = '<div class="pair"><div class="card empty">атака</div><div class="card empty">защита</div></div>';
+        return;
+      }
+      tableCards.innerHTML = pairs.map((pair, idx) => `
+        <div class="pair" data-pair-index="${idx}">
+          <div class="attack-slot">${cardHtml(pair.attack, selectedAttackIndex === idx && !pair.defense, true)}</div>
+          <div class="defense-slot">${cardHtml(pair.defense, false, true)}</div>
+        </div>
+      `).join('');
+
+      tableCards.querySelectorAll('.attack-slot .card').forEach((el, i) => {
+        const pair = pairs[i];
+        if (pair && !pair.defense) {
+          el.addEventListener('click', () => {
+            selectedAttackIndex = i;
+            renderTable(g);
+            updateActionButtons(g, getMeKey());
+          });
+        }
+      });
+    }
+
+    function renderHand(g, meKey) {
+      const hand = sortHand(g.hands?.[meKey] || [], g.trumpSuit);
+      if (!hand.length) {
+        myHand.innerHTML = '<div class="card empty">рука пуста</div>';
+        return;
+      }
+      myHand.innerHTML = hand.map(code => cardHtml(code, selectedHandCard === code)).join('');
+      myHand.querySelectorAll('.card[data-card]').forEach(el => {
+        el.addEventListener('click', () => {
+          const code = el.dataset.card;
+          selectedHandCard = selectedHandCard === code ? null : code;
+          renderHand(g, meKey);
+          updateActionButtons(g, meKey);
+        });
+      });
+    }
+
+    function disableAllActions() {
+      playBtn.disabled = true;
+      defendBtn.disabled = true;
+      transferBtn.disabled = true;
+      takeBtn.disabled = true;
+      doneBtn.disabled = true;
+      swapBtn.disabled = true;
+    }
+
+    function updateActionButtons(g, meKey) {
+      disableAllActions();
+      const me = currentRoom.players?.[meKey];
+      if (!me || currentRoom.status !== 'playing') return;
+      const hand = g.hands?.[meKey] || [];
+      const selected = selectedHandCard;
+      const unresolved = unresolvedPairs(g.table || []).length;
+      playBtn.disabled = !(selected && canAttackWith(currentRoom, meKey, selected));
+      defendBtn.disabled = !(selected && selectedAttackIndex !== null && isMyTurnToDefend());
+      if (!defendBtn.disabled) {
+        const pair = g.table[selectedAttackIndex];
+        defendBtn.disabled = !pair || pair.defense || !beats(selected, pair.attack, g.trumpSuit);
+      }
+      transferBtn.disabled = !(selected && canTransferWith(currentRoom, meKey, selected));
+      takeBtn.disabled = !isMyTurnToDefend();
+      doneBtn.disabled = !(isMyTurnToDefend() && g.table.length && unresolved === 0);
+      swapBtn.disabled = !canSwapTrump(currentRoom, meKey);
+      chanceBtn.disabled = true;
+    }
+
+    async function onOverlayOk() {
+      hideOverlay();
+    }
+
+    function hideOverlay() {
+      overlay.classList.remove('open');
+    }
+
+    createRoomBtn.addEventListener('click', createRoom);
+    joinRoomBtn.addEventListener('click', joinRoom);
+    playBtn.addEventListener('click', playAttackCard);
+    defendBtn.addEventListener('click', defendSelected);
+    transferBtn.addEventListener('click', transferSelected);
+    takeBtn.addEventListener('click', takeTable);
+    doneBtn.addEventListener('click', doneRound);
+    swapBtn.addEventListener('click', swapTrump);
+    overlayOkBtn.addEventListener('click', onOverlayOk);
+    overlay.addEventListener('click', e => { if (e.target === overlay) hideOverlay(); });
+
+    prevCellBtn?.addEventListener('click', () => {});
+    nextCellBtn?.addEventListener('click', () => {});
+    focusPlayerBtn?.addEventListener('click', () => {});
+
+    nickInput.addEventListener('input', () => {
+      localStorage.setItem('skumbrak_nick', nickInput.value.trim());
+    });
+
+    if (roomCode) connectRoom(roomCode);
+  </script>
+</body>
+</html>
