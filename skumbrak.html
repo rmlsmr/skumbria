@@ -178,9 +178,7 @@
       align-items: center;
       opacity: 0.7;
     }
-    .card.small {
-      min-height: 86px;
-    }
+    .card.small { min-height: 86px; }
     .card.selected {
       box-shadow: inset 0 0 0 3px rgba(0,102,204,0.35);
       transform: translateY(-2px);
@@ -334,7 +332,7 @@
           <div class="panel-title" style="margin:0 0 4px 0;">Стол</div>
           <div class="status" id="roundInfo">Ждем, пока стая соберется.</div>
         </div>
-        <div style="display:flex; gap:8px; align-items:center;">
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
           <div class="deck-pill">козырь <b id="trumpLabel">—</b></div>
           <div class="deck-pill">подменный <b id="swapLabel">—</b></div>
         </div>
@@ -352,7 +350,7 @@
         <button class="action-btn big" id="doneBtn" type="button" disabled>отбой</button>
         <button class="action-btn big" id="swapBtn" type="button" disabled>подменить козырь</button>
       </div>
-      <div class="help">Подменный козырь: если у тебя есть минимальный козырь, можешь обменять его на открытую козырную карту, пока колода не пустая.</div>
+      <div class="help">Подменный козырь: если у тебя есть 2 козыря, можешь обменять его на открытую козырную карту, пока колода не пустая.</div>
     </div>
 
     <div class="panel">
@@ -373,7 +371,7 @@
 
   <div class="overlay" id="overlay">
     <div class="overlay-card">
-      <h2 id="overlayTitle">Шанс</h2>
+      <h2 id="overlayTitle">Сообщение</h2>
       <p id="overlayText"></p>
       <div class="grid2">
         <button class="action-btn" id="overlayOkBtn" type="button">понял</button>
@@ -444,6 +442,7 @@
     let currentRoom = null;
     let selectedHandCard = null;
     let selectedAttackIndex = null;
+    let settleLock = false;
 
     nickInput.value = localStorage.getItem('skumbrak_nick') || '';
     if (roomCode) roomCodeInput.value = roomCode;
@@ -582,6 +581,7 @@
         createdAt: Date.now(),
         host: key,
         status: 'waiting',
+        settled: false,
         lastAction: `${name} создал комнату ${code}.`,
         players: {
           [key]: {
@@ -654,31 +654,30 @@
         const players = room.players || {};
         const order = room.order || [];
         if (!players[nick.key] && order.length >= 5) throw new Error('Комната уже полная.');
+        if (room.status === 'finished') throw new Error('Эта комната уже закончилась. Создай новую.');
+        const updates = {};
         if (!players[nick.key]) {
-          await update(roomRef(code), {
-            [`players/${nick.key}`]: {
-              name: nick.name,
-              nickKey: nick.key,
-              deviceId,
-              coins: profile.coins,
-              seat: order.length,
-              color: PLAYER_COLORS[order.length % PLAYER_COLORS.length],
-              online: true,
-              joinedAt: Date.now(),
-              handCount: 0,
-              finished: false
-            },
-            order: [...order, nick.key],
-            [`log/${Date.now()}`]: `${nick.name} вошел в комнату.`
-          });
+          updates[`players/${nick.key}`] = {
+            name: nick.name,
+            nickKey: nick.key,
+            deviceId,
+            coins: profile.coins,
+            seat: order.length,
+            color: PLAYER_COLORS[order.length % PLAYER_COLORS.length],
+            online: true,
+            joinedAt: Date.now(),
+            handCount: 0,
+            finished: false
+          };
+          updates.order = [...order, nick.key];
+          updates[`log/${Date.now()}`] = `${nick.name} вошел в комнату.`;
         } else {
-          await update(roomRef(code), {
-            [`players/${nick.key}/online`]: true,
-            [`players/${nick.key}/deviceId`]: deviceId,
-            [`players/${nick.key}/name`]: nick.name,
-            [`log/${Date.now()}`]: `${nick.name} вернулся в комнату.`
-          });
+          updates[`players/${nick.key}/online`] = true;
+          updates[`players/${nick.key}/deviceId`] = deviceId;
+          updates[`players/${nick.key}/name`] = nick.name;
+          updates[`log/${Date.now()}`] = `${nick.name} вернулся в комнату.`;
         }
+        await update(roomRef(code), updates);
         connectRoom(code);
       } catch (e) {
         statusText.textContent = e.message || 'Не удалось войти в комнату.';
@@ -725,7 +724,7 @@
 
     function activeKeys(room) {
       const g = room?.game;
-      if (!g) return [];
+      if (!g) return room?.order || [];
       return (room.order || []).filter(k => !g.finished?.[k]);
     }
 
@@ -760,10 +759,6 @@
       return g.defender === me && (g.phase === 'defense' || g.phase === 'attack' || g.phase === 'throwin');
     }
 
-    function minimalTrumpRank() {
-      return '2';
-    }
-
     function createGameFromRoom(room) {
       const order = room.order || [];
       const shuffled = shuffle(deck52());
@@ -787,12 +782,11 @@
           attacker = k;
         }
       });
-      const defender = nextActive({ ...room, game: { finished: {} } }, attacker);
       return {
         startedAt: Date.now(),
         phase: 'attack',
         attacker,
-        defender,
+        defender: nextActive({ ...room, game: { finished: {} } }, attacker),
         hands,
         deck: shuffled,
         trumpSuit,
@@ -801,8 +795,7 @@
         table: [],
         finished: {},
         winners: [],
-        loser: null,
-        pendingTake: false
+        loser: null
       };
     }
 
@@ -810,19 +803,22 @@
       if (!currentRoom || currentRoom.status !== 'waiting') return;
       const me = getMe();
       const players = getPlayersOrdered();
-      if (!me) return;
+      if (!me || currentRoom.host !== getMeKey()) return;
       if (players.length < 2) return;
-      if (currentRoom.host !== getMeKey()) return;
       await runTransaction(roomRef(roomCode), room => {
         if (!room || room.status !== 'waiting') return room;
         const playersArr = (room.order || []).map(k => room.players?.[k]).filter(Boolean);
         if (playersArr.length < 2) return room;
         room.status = 'playing';
+        room.settled = false;
         room.game = createGameFromRoom(room);
         room.lastAction = 'Партия началась.';
         room.log = room.log || {};
         room.log[`${Date.now()}`] = 'Партия началась.';
-        playersArr.forEach(p => { p.handCount = room.game.hands[p.nickKey].length; });
+        playersArr.forEach(p => {
+          p.handCount = room.game.hands[p.nickKey].length;
+          p.finished = false;
+        });
         return room;
       });
     }
@@ -842,56 +838,49 @@
 
     function defenderCapacity(room) {
       const g = room.game;
-      const defenderHand = g.hands[g.defender] || [];
-      return defenderHand.length;
+      return (g.hands[g.defender] || []).length;
     }
 
-    function canAttackWith(room, playerKey, cardCode) {
+    function canAttackWith(room, playerKey, card) {
       const g = room.game;
-      if (!g || !g.hands[playerKey]?.includes(cardCode)) return false;
+      if (!g || !g.hands[playerKey]?.includes(card)) return false;
       if (playerKey === g.defender) return false;
-      const table = g.table || [];
       const capacity = defenderCapacity(room);
-      if (table.length >= capacity) return false;
-      if (table.length === 0) return playerKey === g.attacker;
-      const ranks = allAttackRanks(table);
-      return ranks.has(parseCard(cardCode).rank);
+      if ((g.table || []).length >= capacity) return false;
+      if (g.table.length === 0) return playerKey === g.attacker;
+      return allAttackRanks(g.table).has(parseCard(card).rank);
     }
 
-    function canTransferWith(room, playerKey, cardCode) {
+    function canTransferWith(room, playerKey, card) {
       const g = room.game;
       if (!g || playerKey !== g.defender) return false;
-      if (!g.hands[playerKey]?.includes(cardCode)) return false;
-      const table = g.table || [];
-      if (!table.length) return false;
-      if (table.some(p => p.defense)) return false;
-      const firstRank = parseCard(table[0].attack).rank;
-      if (parseCard(cardCode).rank !== firstRank) return false;
+      if (!g.hands[playerKey]?.includes(card)) return false;
+      if (!g.table.length) return false;
+      if (g.table.some(p => p.defense)) return false;
+      const firstRank = parseCard(g.table[0].attack).rank;
+      if (parseCard(card).rank !== firstRank) return false;
       const nextDef = nextActive(room, g.defender);
       if (nextDef === g.defender) return false;
-      const nextDefHand = g.hands[nextDef] || [];
-      return nextDefHand.length >= table.length + 1;
+      return (g.hands[nextDef] || []).length >= g.table.length + 1;
     }
 
     function canSwapTrump(room, playerKey) {
       const g = room.game;
       if (!g || !g.deck?.length) return false;
-      const hand = g.hands[playerKey] || [];
-      return hand.includes(minimalTrumpRank() + g.trumpSuit);
+      return (g.hands[playerKey] || []).includes(cardCode('2', g.trumpSuit));
     }
 
     function refillHands(room) {
       const g = room.game;
-      const order = [];
+      const seq = [];
       let cur = g.attacker;
-      const actives = activeKeys(room);
-      if (!actives.length) return;
-      do {
-        if (!g.finished[cur]) order.push(cur);
+      const seen = new Set();
+      while (!seen.has(cur)) {
+        seen.add(cur);
+        if (!g.finished[cur]) seq.push(cur);
         cur = nextActive(room, cur);
-      } while (cur !== g.attacker && order.length <= actives.length + 1);
-
-      order.forEach(k => {
+      }
+      seq.forEach(k => {
         while ((g.hands[k] || []).length < 6 && g.deck.length) {
           g.hands[k].push(g.deck.shift());
         }
@@ -901,11 +890,11 @@
 
     function markFinished(room) {
       const g = room.game;
-      const actives = activeKeys(room);
-      actives.forEach(k => {
+      activeKeys(room).forEach(k => {
         if ((g.hands[k] || []).length === 0 && g.deck.length === 0) {
           g.finished[k] = true;
           if (!g.winners.includes(k)) g.winners.push(k);
+          if (room.players[k]) room.players[k].finished = true;
         }
       });
       const still = activeKeys(room);
@@ -1002,15 +991,18 @@
         markFinished(room);
         return room;
       });
+      selectedAttackIndex = null;
+      selectedHandCard = null;
     }
 
     async function doneRound() {
       if (!currentRoom) return;
+      const meKey = getMeKey();
       await runTransaction(roomRef(roomCode), room => {
         if (!room || room.status !== 'playing') return room;
         const g = room.game;
+        if (g.defender !== meKey) return room;
         if (unresolvedPairs(g.table).length) return room;
-        if (g.defender !== getMeKey()) return room;
         const cards = [];
         g.table.forEach(p => {
           cards.push(p.attack);
@@ -1023,11 +1015,13 @@
         g.attacker = g.defender;
         g.defender = nextActive(room, g.attacker);
         g.phase = 'attack';
-        room.lastAction = `${room.players[getMeKey()].name} объявил отбой.`;
+        room.lastAction = `${room.players[meKey].name} объявил отбой.`;
         room.log[`${Date.now()}_${Math.random().toString(36).slice(2, 6)}`] = room.lastAction;
         markFinished(room);
         return room;
       });
+      selectedAttackIndex = null;
+      selectedHandCard = null;
     }
 
     async function swapTrump() {
@@ -1035,9 +1029,9 @@
       const meKey = getMeKey();
       await runTransaction(roomRef(roomCode), room => {
         if (!room || room.status !== 'playing') return room;
-        const g = room.game;
         if (!canSwapTrump(room, meKey)) return room;
-        const minimal = minimalTrumpRank() + g.trumpSuit;
+        const g = room.game;
+        const minimal = cardCode('2', g.trumpSuit);
         g.hands[meKey] = g.hands[meKey].filter(c => c !== minimal);
         g.hands[meKey].push(g.bottomTrump);
         g.bottomTrump = minimal;
@@ -1047,28 +1041,31 @@
         room.log[`${Date.now()}_${Math.random().toString(36).slice(2, 6)}`] = room.lastAction;
         return room;
       });
+      selectedHandCard = null;
     }
 
     async function settleFinishedGame() {
-      if (!currentRoom || currentRoom.status !== 'finished' || currentRoom.settled) return;
-      const meKey = getMeKey();
-      if (currentRoom.host !== meKey) return;
-      const loser = currentRoom.game?.loser;
-      const winners = currentRoom.game?.winners || [];
-      const updates = { [`skumbrak_rooms/${roomCode}/settled`]: true };
-      const players = currentRoom.players || {};
-      Object.values(players).forEach(p => {
-        const basePath = `skumbrak_players/${p.nickKey}`;
-        const currentCoins = Math.max(0, p.coins || 0);
-        let delta = 0;
-        if (winners.includes(p.nickKey)) delta += WIN_REWARD;
-        if (p.nickKey === loser) delta -= LOSE_PENALTY;
-        updates[`${basePath}/coins`] = Math.max(0, currentCoins + delta);
-        updates[`${basePath}/lastSeenAt`] = Date.now();
-      });
-      await update(ref(db), updates);
-      const loserName = players[loser]?.name || 'кто-то';
-      showOverlay('Партия окончена', `Дураком остался ${loserName}. Победители получили по ${WIN_REWARD}, дурак потерял ${LOSE_PENALTY}.`);
+      if (!currentRoom || currentRoom.status !== 'finished' || currentRoom.settled || settleLock) return;
+      if (currentRoom.host !== getMeKey()) return;
+      settleLock = true;
+      try {
+        const loser = currentRoom.game?.loser;
+        const winners = currentRoom.game?.winners || [];
+        const updates = { [`skumbrak_rooms/${roomCode}/settled`]: true };
+        const players = currentRoom.players || {};
+        Object.values(players).forEach(p => {
+          const base = `skumbrak_players/${p.nickKey}`;
+          const currentCoins = Math.max(0, p.coins || 0);
+          let delta = 0;
+          if (winners.includes(p.nickKey)) delta += WIN_REWARD;
+          if (p.nickKey === loser) delta -= LOSE_PENALTY;
+          updates[`${base}/coins`] = Math.max(0, currentCoins + delta);
+          updates[`${base}/lastSeenAt`] = Date.now();
+        });
+        await update(ref(db), updates);
+      } finally {
+        settleLock = false;
+      }
     }
 
     function renderRoom() {
@@ -1145,7 +1142,7 @@
         turnLabel.textContent = '—';
         defenderLabel.textContent = '—';
         deckLabel.textContent = '—';
-        roundInfo.textContent = 'Ждем, пока стая соберется.';
+        roundInfo.textContent = currentRoom?.lastAction || 'Ждем, пока стая соберется.';
         trumpLabel.textContent = '—';
         swapLabel.textContent = '—';
         tableCards.innerHTML = '<div class="pair"><div class="card empty">пусто</div><div class="card empty">пусто</div></div>';
@@ -1153,35 +1150,35 @@
         disableAllActions();
         return;
       }
-
       phaseLabel.textContent = g.phase;
       turnLabel.textContent = currentRoom.players?.[g.attacker]?.name || '—';
       defenderLabel.textContent = currentRoom.players?.[g.defender]?.name || '—';
       deckLabel.textContent = String(g.deck?.length || 0);
+      roundInfo.textContent = currentRoom.lastAction || 'Игра идет.';
       trumpLabel.textContent = g.trumpSuit || '—';
       swapLabel.textContent = g.bottomTrump || '—';
-      roundInfo.textContent = currentRoom.lastAction || 'Игра идет.';
-
       renderTable(g);
       renderHand(g, meKey);
       updateActionButtons(g, meKey);
+      if (currentRoom.status === 'finished') {
+        const loserName = currentRoom.players?.[g.loser]?.name || 'кто-то';
+        roundInfo.textContent = `Партия окончена. Дураком остался ${loserName}.`;
+      }
     }
 
     function renderTable(g) {
-      const pairs = g.table || [];
-      if (!pairs.length) {
+      if (!g.table.length) {
         tableCards.innerHTML = '<div class="pair"><div class="card empty">атака</div><div class="card empty">защита</div></div>';
         return;
       }
-      tableCards.innerHTML = pairs.map((pair, idx) => `
+      tableCards.innerHTML = g.table.map((pair, idx) => `
         <div class="pair" data-pair-index="${idx}">
           <div class="attack-slot">${cardHtml(pair.attack, selectedAttackIndex === idx && !pair.defense, true)}</div>
           <div class="defense-slot">${cardHtml(pair.defense, false, true)}</div>
         </div>
       `).join('');
-
       tableCards.querySelectorAll('.attack-slot .card').forEach((el, i) => {
-        const pair = pairs[i];
+        const pair = g.table[i];
         if (pair && !pair.defense) {
           el.addEventListener('click', () => {
             selectedAttackIndex = i;
@@ -1220,9 +1217,7 @@
 
     function updateActionButtons(g, meKey) {
       disableAllActions();
-      const me = currentRoom.players?.[meKey];
-      if (!me || currentRoom.status !== 'playing') return;
-      const hand = g.hands?.[meKey] || [];
+      if (currentRoom.status !== 'playing') return;
       const selected = selectedHandCard;
       const unresolved = unresolvedPairs(g.table || []).length;
       playBtn.disabled = !(selected && canAttackWith(currentRoom, meKey, selected));
@@ -1235,15 +1230,24 @@
       takeBtn.disabled = !isMyTurnToDefend();
       doneBtn.disabled = !(isMyTurnToDefend() && g.table.length && unresolved === 0);
       swapBtn.disabled = !canSwapTrump(currentRoom, meKey);
-      chanceBtn.disabled = true;
     }
 
-    async function onOverlayOk() {
-      hideOverlay();
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
     }
 
-    function hideOverlay() {
-      overlay.classList.remove('open');
+    function cleanupPresence() {
+      if (!roomCode) return;
+      const meKey = getMeKey();
+      if (!meKey) return;
+      update(roomRef(roomCode), {
+        [`players/${meKey}/online`]: false
+      }).catch(() => {});
     }
 
     createRoomBtn.addEventListener('click', createRoom);
@@ -1254,16 +1258,12 @@
     takeBtn.addEventListener('click', takeTable);
     doneBtn.addEventListener('click', doneRound);
     swapBtn.addEventListener('click', swapTrump);
-    overlayOkBtn.addEventListener('click', onOverlayOk);
+    overlayOkBtn.addEventListener('click', hideOverlay);
     overlay.addEventListener('click', e => { if (e.target === overlay) hideOverlay(); });
-
-    prevCellBtn?.addEventListener('click', () => {});
-    nextCellBtn?.addEventListener('click', () => {});
-    focusPlayerBtn?.addEventListener('click', () => {});
-
     nickInput.addEventListener('input', () => {
       localStorage.setItem('skumbrak_nick', nickInput.value.trim());
     });
+    window.addEventListener('beforeunload', cleanupPresence);
 
     if (roomCode) connectRoom(roomCode);
   </script>
