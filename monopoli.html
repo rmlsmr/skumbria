@@ -1,0 +1,1443 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Скумброполия</title>
+  <link rel="icon" href="favicon.png" />
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      color: #222;
+    }
+    body.dark {
+      background: #0d1117;
+      color: #c9d1d9;
+    }
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 12px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+    .title {
+      margin: 0;
+      font-size: 32px;
+      font-weight: 700;
+    }
+    .sub {
+      margin-top: 4px;
+      opacity: 0.8;
+      font-size: 14px;
+    }
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .btn, .theme-btn, .action-btn, .room-btn {
+      font: inherit;
+      color: inherit;
+      background: transparent;
+      border: 1px solid rgba(120,120,120,0.55);
+      border-radius: 10px;
+      padding: 10px 12px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 42px;
+    }
+    .btn:hover, .theme-btn:hover, .action-btn:hover, .room-btn:hover {
+      background: rgba(255,255,255,0.06);
+    }
+    .action-btn:disabled, .room-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(290px, 360px) 1fr;
+      gap: 12px;
+      align-items: start;
+    }
+    .sidebar, .board-wrap {
+      background: rgba(255,255,255,0.45);
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(120,120,120,0.18);
+    }
+    body.dark .sidebar,
+    body.dark .board-wrap {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(255,255,255,0.08);
+    }
+    .sidebar-inner {
+      padding: 12px;
+      display: grid;
+      gap: 12px;
+    }
+    .panel {
+      border: 1px solid rgba(120,120,120,0.2);
+      border-radius: 12px;
+      padding: 12px;
+    }
+    .panel-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .panel-copy {
+      font-size: 14px;
+      line-height: 1.4;
+      opacity: 0.9;
+    }
+    .room-controls, .name-controls, .player-actions, .mobile-nav {
+      display: grid;
+      gap: 8px;
+    }
+    .name-controls input,
+    .room-controls input {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid rgba(120,120,120,0.35);
+      border-radius: 10px;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      padding: 10px 12px;
+    }
+    .room-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .stats-list {
+      display: grid;
+      gap: 6px;
+      font-size: 14px;
+    }
+    .players-list, .log-list {
+      display: grid;
+      gap: 8px;
+      max-height: 240px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+    .player-card, .log-item {
+      border: 1px solid rgba(120,120,120,0.18);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 14px;
+      line-height: 1.35;
+    }
+    .player-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+    .player-name {
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .player-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex: 0 0 auto;
+      border: 1px solid rgba(0,0,0,0.25);
+    }
+    .turn-badge, .me-badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid rgba(120,120,120,0.25);
+    }
+    .turn-badge { background: rgba(0,102,204,0.12); }
+    .me-badge { background: rgba(27,163,74,0.12); }
+    .board-wrap {
+      padding: 12px;
+    }
+    .board-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 10px;
+    }
+    .dice-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid rgba(120,120,120,0.2);
+      border-radius: 12px;
+      padding: 8px 10px;
+    }
+    .dice {
+      width: 52px;
+      height: 52px;
+      border-radius: 12px;
+      background: #fff8e8;
+      color: #1f1f1f;
+      border: 2px solid rgba(31,31,31,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 700;
+      flex: 0 0 auto;
+    }
+    body.dark .dice {
+      background: #e9eef5;
+    }
+    .dice.rolling {
+      animation: wobble 0.12s linear infinite;
+    }
+    @keyframes wobble {
+      0% { transform: rotate(-6deg) scale(0.97); }
+      50% { transform: rotate(6deg) scale(1.03); }
+      100% { transform: rotate(-6deg) scale(0.97); }
+    }
+    .board-scroller {
+      width: 100%;
+      overflow-x: auto;
+      overflow-y: visible;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 6px;
+    }
+    .board {
+      aspect-ratio: 1 / 1;
+      width: 100%;
+      min-width: 760px;
+      display: grid;
+      grid-template-columns: 120px repeat(9, 1fr) 120px;
+      grid-template-rows: 120px repeat(9, 1fr) 120px;
+      border: 4px solid #1f1f1f;
+      background: #f6eed8;
+      position: relative;
+      box-shadow: inset 0 0 0 10px rgba(0,0,0,0.04);
+    }
+    body.dark .board {
+      background: #171b21;
+      border-color: #606a76;
+      box-shadow: inset 0 0 0 10px rgba(255,255,255,0.02);
+    }
+    .cell {
+      border: 2px solid rgba(31,31,31,0.82);
+      background: #f9f2df;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      position: relative;
+      transition: background 0.15s ease, box-shadow 0.15s ease;
+      cursor: pointer;
+    }
+    body.dark .cell {
+      border-color: rgba(185,195,205,0.35);
+      background: #1e242c;
+    }
+    .cell:hover {
+      background: #fff8e8;
+      z-index: 2;
+    }
+    body.dark .cell:hover {
+      background: #242c35;
+    }
+    .cell.active {
+      background: #d8ecff;
+      box-shadow: inset 0 0 0 3px rgba(0,102,204,0.35);
+      z-index: 3;
+    }
+    body.dark .cell.active {
+      background: #29384a;
+      box-shadow: inset 0 0 0 3px rgba(88,166,255,0.35);
+    }
+    .cell.owned::after {
+      content: "✓";
+      position: absolute;
+      right: 6px;
+      bottom: 6px;
+      font-size: 14px;
+      opacity: 0.75;
+      font-weight: 700;
+    }
+    .corner {
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-weight: 700;
+      font-size: 14px;
+      background: #efe4c8;
+    }
+    body.dark .corner {
+      background: #222a31;
+    }
+    .corner-icon {
+      font-size: 28px;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .band {
+      height: 16px;
+      border-radius: 4px;
+      margin-bottom: 6px;
+      flex-shrink: 0;
+    }
+    .blue { background: #2f7df7; }
+    .green { background: #1ba34a; }
+    .orange { background: #d98a1d; }
+    .red { background: #d63b36; }
+    .purple { background: #8d54d6; }
+    .gray { background: #81878f; }
+    .cell-title {
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.08;
+      word-break: break-word;
+    }
+    .cell-price {
+      font-size: 11px;
+      opacity: 0.76;
+      line-height: 1.08;
+      margin-top: 6px;
+    }
+    .center-zone {
+      grid-column: 2 / 11;
+      grid-row: 2 / 11;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background:
+        radial-gradient(circle at center, rgba(255,255,255,0.35), rgba(255,255,255,0.05) 60%),
+        linear-gradient(135deg, rgba(0,0,0,0.02), rgba(0,0,0,0.06));
+    }
+    body.dark .center-zone {
+      background:
+        radial-gradient(circle at center, rgba(255,255,255,0.05), rgba(255,255,255,0.02) 60%),
+        linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.04));
+    }
+    .logo {
+      text-align: center;
+      transform: rotate(-12deg);
+      user-select: none;
+      pointer-events: none;
+    }
+    .logo-big {
+      font-size: clamp(34px, 5vw, 72px);
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+    .logo-small {
+      font-size: clamp(14px, 1.6vw, 22px);
+      opacity: 0.85;
+    }
+    .details-box {
+      position: absolute;
+      right: 18px;
+      bottom: 18px;
+      max-width: 340px;
+      background: rgba(255,255,255,0.9);
+      border: 1px solid rgba(120,120,120,0.25);
+      border-radius: 14px;
+      padding: 12px;
+      backdrop-filter: blur(4px);
+      z-index: 20;
+    }
+    body.dark .details-box {
+      background: rgba(17,21,27,0.92);
+      border-color: rgba(255,255,255,0.08);
+    }
+    .details-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .details-text {
+      font-size: 14px;
+      line-height: 1.42;
+      opacity: 0.86;
+      margin-bottom: 10px;
+    }
+    .details-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid rgba(120,120,120,0.3);
+      margin-bottom: 10px;
+    }
+    .details-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .token {
+      position: absolute;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      border: 2px solid rgba(0,0,0,0.35);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.24);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+      z-index: 15;
+      transition: left 0.32s ease, top 0.32s ease, transform 0.32s ease;
+      pointer-events: none;
+    }
+    .chance-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 999;
+    }
+    .chance-overlay.open {
+      display: flex;
+    }
+    .chance-card {
+      max-width: 460px;
+      width: 100%;
+      background: #fff8e8;
+      color: #222;
+      border-radius: 18px;
+      padding: 18px;
+      border: 3px solid #1f1f1f;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.35);
+      transform: rotate(-2deg);
+    }
+    .chance-card h2 {
+      margin: 0 0 10px 0;
+      font-size: 26px;
+    }
+    .chance-card p {
+      margin: 0 0 14px 0;
+      line-height: 1.45;
+    }
+    .chance-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .status-line {
+      font-size: 13px;
+      opacity: 0.78;
+    }
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .board {
+        grid-template-columns: 82px repeat(9, 1fr) 82px;
+        grid-template-rows: 82px repeat(9, 1fr) 82px;
+      }
+      .cell-title {
+        font-size: 10px;
+      }
+      .cell-price {
+        font-size: 9px;
+      }
+      .details-box {
+        position: static;
+        margin-top: 14px;
+        max-width: none;
+      }
+      .center-zone {
+        align-items: flex-start;
+      }
+      .logo {
+        margin-top: 14px;
+      }
+      .token {
+        width: 28px;
+        height: 28px;
+        font-size: 10px;
+      }
+    }
+    @media (max-width: 720px) {
+      .page {
+        padding: 10px;
+      }
+      .title {
+        font-size: 28px;
+      }
+      .sidebar-inner,
+      .board-wrap {
+        padding: 10px;
+      }
+      .room-grid-2,
+      .player-actions,
+      .mobile-nav,
+      .details-actions,
+      .chance-actions {
+        grid-template-columns: 1fr;
+        display: grid;
+      }
+      .board {
+        min-width: 700px;
+      }
+      .board-scroller {
+        margin: 0 -2px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <div>
+        <h1 class="title">Скумброполия</h1>
+        <div class="sub">Многопользовательская настолка про дороги, копчение, плацкарт и моральный ущерб</div>
+      </div>
+      <div class="top-actions">
+        <a class="btn" href="index.html">назад</a>
+        <button class="theme-btn" id="themeBtn" type="button">🌙</button>
+      </div>
+    </div>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="sidebar-inner">
+          <div class="panel">
+            <div class="panel-title">Вход в партию</div>
+            <div class="name-controls">
+              <input id="playerNameInput" type="text" maxlength="24" placeholder="имя скумбрии" />
+            </div>
+            <div class="room-controls" style="margin-top:8px;">
+              <div class="room-grid-2">
+                <button class="room-btn" id="createRoomBtn" type="button">создать комнату</button>
+                <button class="room-btn" id="joinRoomBtn" type="button">войти в комнату</button>
+              </div>
+              <input id="roomCodeInput" type="text" maxlength="6" placeholder="код комнаты" />
+            </div>
+            <div class="status-line" id="roomStatus" style="margin-top:8px;">Сначала введи имя, потом создай комнату или зайди в существующую.</div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">Твоя скумбрия</div>
+            <div class="stats-list">
+              <div>Комната: <b id="roomCodeLabel">—</b></div>
+              <div>Позиция: <b id="playerPosition">—</b></div>
+              <div>Копчекоины: <b id="playerCoins">—</b></div>
+              <div>Кругов: <b id="playerLaps">—</b></div>
+              <div>Собственность: <b id="playerOwned">—</b></div>
+              <div>Ход: <b id="turnLabel">—</b></div>
+            </div>
+            <div class="player-actions" style="margin-top:10px;">
+              <button class="action-btn" id="rollBtn" type="button" disabled>бросить кубик</button>
+              <button class="action-btn" id="chanceBtn" type="button" disabled>шанс</button>
+              <button class="action-btn" id="buyBtnMain" type="button" disabled>купить клетку</button>
+              <button class="action-btn" id="resetRoomBtn" type="button" disabled>новая партия</button>
+            </div>
+            <div class="mobile-nav">
+              <button class="action-btn" id="prevCellBtn" type="button">← клетка</button>
+              <button class="action-btn" id="focusPlayerBtn" type="button">моя клетка</button>
+              <button class="action-btn" id="nextCellBtn" type="button">клетка →</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">Игроки</div>
+            <div class="players-list" id="playersList">
+              <div class="player-card">Пока никого. Создай комнату и зови стаю.</div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">Лог партии</div>
+            <div class="log-list" id="logList">
+              <div class="log-item">Здесь будут ходы, покупки, шансы и прочая настольная драма.</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <section class="board-wrap">
+        <div class="board-top">
+          <div class="panel-title" style="margin:0;">Поле</div>
+          <div class="dice-box">
+            <div class="dice" id="dice">🎲</div>
+            <div class="status-line" id="diceText">Ждём скумбрийного движения</div>
+          </div>
+        </div>
+
+        <div class="board-scroller" id="boardScroller">
+          <div class="board" id="board">
+            <div class="cell corner board-cell" data-index="0" style="grid-row:11;grid-column:1;"><span class="corner-icon">🚲</span>СТАРТ<br>САМАРА</div>
+            <div class="cell corner board-cell" data-index="10" style="grid-row:11;grid-column:11;"><span class="corner-icon">🚂</span>ВЫБРОСКА<br>НА ЭЛЬКЕ</div>
+            <div class="cell corner board-cell" data-index="20" style="grid-row:1;grid-column:11;"><span class="corner-icon">⛰️</span>ГОРНОЕ<br>КОПЧЕНИЕ</div>
+            <div class="cell corner board-cell" data-index="30" style="grid-row:1;grid-column:1;"><span class="corner-icon">🐟</span>СКУМБРИЯ<br>БЕСПЛАТНО</div>
+
+            <div class="cell board-cell" data-index="1" style="grid-row:11;grid-column:2;"><div><div class="band blue"></div><div class="cell-title">Подвалье</div></div><div class="cell-price">120</div></div>
+            <div class="cell board-cell" data-index="2" style="grid-row:11;grid-column:3;"><div><div class="band blue"></div><div class="cell-title">СыСа</div></div><div class="cell-price">140</div></div>
+            <div class="cell board-cell" data-index="3" style="grid-row:11;grid-column:4;"><div><div class="band gray"></div><div class="cell-title">Шанс</div></div><div class="cell-price">тянуть</div></div>
+            <div class="cell board-cell" data-index="4" style="grid-row:11;grid-column:5;"><div><div class="band orange"></div><div class="cell-title">Башкирия</div></div><div class="cell-price">220</div></div>
+            <div class="cell board-cell" data-index="5" style="grid-row:11;grid-column:6;"><div><div class="band green"></div><div class="cell-title">Остановка пожрать</div></div><div class="cell-price">+75</div></div>
+            <div class="cell board-cell" data-index="6" style="grid-row:11;grid-column:7;"><div><div class="band red"></div><div class="cell-title">Минводы</div></div><div class="cell-price">260</div></div>
+            <div class="cell board-cell" data-index="7" style="grid-row:11;grid-column:8;"><div><div class="band purple"></div><div class="cell-title">Кофе из Пятерки</div></div><div class="cell-price">90</div></div>
+            <div class="cell board-cell" data-index="8" style="grid-row:11;grid-column:9;"><div><div class="band orange"></div><div class="cell-title">Узбекистан</div></div><div class="cell-price">320</div></div>
+            <div class="cell board-cell" data-index="9" style="grid-row:11;grid-column:10;"><div><div class="band orange"></div><div class="cell-title">Киргизия</div></div><div class="cell-price">360</div></div>
+
+            <div class="cell board-cell" data-index="11" style="grid-row:10;grid-column:11;"><div><div class="band gray"></div><div class="cell-title">Хостел</div></div><div class="cell-price">налог 80</div></div>
+            <div class="cell board-cell" data-index="12" style="grid-row:9;grid-column:11;"><div><div class="band green"></div><div class="cell-title">Ремнабор</div></div><div class="cell-price">100</div></div>
+            <div class="cell board-cell" data-index="13" style="grid-row:8;grid-column:11;"><div><div class="band purple"></div><div class="cell-title">Плацкарт</div></div><div class="cell-price">150</div></div>
+            <div class="cell board-cell" data-index="14" style="grid-row:7;grid-column:11;"><div><div class="band red"></div><div class="cell-title">Пыль дорог</div></div><div class="cell-price">170</div></div>
+            <div class="cell board-cell" data-index="15" style="grid-row:6;grid-column:11;"><div><div class="band gray"></div><div class="cell-title">Шанс</div></div><div class="cell-price">тянуть</div></div>
+            <div class="cell board-cell" data-index="16" style="grid-row:5;grid-column:11;"><div><div class="band blue"></div><div class="cell-title">Грэвел</div></div><div class="cell-price">180</div></div>
+            <div class="cell board-cell" data-index="17" style="grid-row:4;grid-column:11;"><div><div class="band red"></div><div class="cell-title">Эверестинг</div></div><div class="cell-price">налог 120</div></div>
+            <div class="cell board-cell" data-index="18" style="grid-row:3;grid-column:11;"><div><div class="band green"></div><div class="cell-title">Термы</div></div><div class="cell-price">+100</div></div>
+            <div class="cell board-cell" data-index="19" style="grid-row:2;grid-column:11;"><div><div class="band purple"></div><div class="cell-title">Костер</div></div><div class="cell-price">110</div></div>
+
+            <div class="cell board-cell" data-index="21" style="grid-row:1;grid-column:10;"><div><div class="band blue"></div><div class="cell-title">День Потаскумбрии</div></div><div class="cell-price">210</div></div>
+            <div class="cell board-cell" data-index="22" style="grid-row:1;grid-column:9;"><div><div class="band blue"></div><div class="cell-title">Ски-тур</div></div><div class="cell-price">160</div></div>
+            <div class="cell board-cell" data-index="23" style="grid-row:1;grid-column:8;"><div><div class="band green"></div><div class="cell-title">Каток</div></div><div class="cell-price">130</div></div>
+            <div class="cell board-cell" data-index="24" style="grid-row:1;grid-column:7;"><div><div class="band red"></div><div class="cell-title">Горный бонус</div></div><div class="cell-price">+150</div></div>
+            <div class="cell board-cell" data-index="25" style="grid-row:1;grid-column:6;"><div><div class="band gray"></div><div class="cell-title">Шанс</div></div><div class="cell-price">тянуть</div></div>
+            <div class="cell board-cell" data-index="26" style="grid-row:1;grid-column:5;"><div><div class="band orange"></div><div class="cell-title">Кэмп</div></div><div class="cell-price">190</div></div>
+            <div class="cell board-cell" data-index="27" style="grid-row:1;grid-column:4;"><div><div class="band green"></div><div class="cell-title">GPX</div></div><div class="cell-price">80</div></div>
+            <div class="cell board-cell" data-index="28" style="grid-row:1;grid-column:3;"><div><div class="band purple"></div><div class="cell-title">Станция</div></div><div class="cell-price">+60</div></div>
+            <div class="cell board-cell" data-index="29" style="grid-row:1;grid-column:2;"><div><div class="band red"></div><div class="cell-title">Горы</div></div><div class="cell-price">280</div></div>
+
+            <div class="cell board-cell" data-index="31" style="grid-row:2;grid-column:1;"><div><div class="band green"></div><div class="cell-title">Насос</div></div><div class="cell-price">95</div></div>
+            <div class="cell board-cell" data-index="32" style="grid-row:3;grid-column:1;"><div><div class="band gray"></div><div class="cell-title">Дождь</div></div><div class="cell-price">налог 70</div></div>
+            <div class="cell board-cell" data-index="33" style="grid-row:4;grid-column:1;"><div><div class="band purple"></div><div class="cell-title">Мост</div></div><div class="cell-price">115</div></div>
+            <div class="cell board-cell" data-index="34" style="grid-row:5;grid-column:1;"><div><div class="band red"></div><div class="cell-title">Встречный ветер</div></div><div class="cell-price">налог 90</div></div>
+            <div class="cell board-cell" data-index="35" style="grid-row:6;grid-column:1;"><div><div class="band blue"></div><div class="cell-title">Асфальт</div></div><div class="cell-price">150</div></div>
+            <div class="cell board-cell" data-index="36" style="grid-row:7;grid-column:1;"><div><div class="band green"></div><div class="cell-title">Грязь</div></div><div class="cell-price">170</div></div>
+            <div class="cell board-cell" data-index="37" style="grid-row:8;grid-column:1;"><div><div class="band purple"></div><div class="cell-title">Сон после</div></div><div class="cell-price">+50</div></div>
+            <div class="cell board-cell" data-index="38" style="grid-row:9;grid-column:1;"><div><div class="band blue"></div><div class="cell-title">Скумбрия</div></div><div class="cell-price">130</div></div>
+            <div class="cell board-cell" data-index="39" style="grid-row:10;grid-column:1;"><div><div class="band orange"></div><div class="cell-title">Легенда</div></div><div class="cell-price">300</div></div>
+
+            <div class="center-zone">
+              <div class="logo">
+                <div class="logo-big">СКУМБРОПОЛИЯ</div>
+                <div class="logo-small">покупай не улицы, а поводы ехать дальше</div>
+              </div>
+              <div class="details-box" id="detailsBox">
+                <div class="details-title">Ждем игру</div>
+                <div class="details-text">Создай комнату или зайди в существующую, чтобы скумбрии пошли по полю.</div>
+                <div class="details-badge">режим ожидания</div>
+                <div class="details-actions"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="chance-overlay" id="chanceOverlay">
+    <div class="chance-card">
+      <h2>Шанс</h2>
+      <p id="chanceText"></p>
+      <div class="chance-actions">
+        <button class="action-btn" id="closeChanceBtn" type="button">принять судьбу</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js';
+    import {
+      getDatabase,
+      ref,
+      onValue,
+      set,
+      get,
+      update,
+      runTransaction,
+      off,
+      remove
+    } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js';
+
+    const firebaseConfig = {
+      apiKey: 'AIzaSyDHqiDJv2-zDTzZN9YLQg2hwykNKnX7qcI',
+      authDomain: 'skumbria-site.firebaseapp.com',
+      databaseURL: 'https://skumbria-site-default-rtdb.europe-west1.firebasedatabase.app',
+      projectId: 'skumbria-site',
+      storageBucket: 'skumbria-site.firebasestorage.app',
+      messagingSenderId: '700612744672',
+      appId: '1:700612744672:web:22f7af4253442012ccc785',
+      measurementId: 'G-73MH3SVT7D'
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    const PLAYER_COLORS = ['#d63b36', '#2f7df7', '#1ba34a', '#8d54d6'];
+    const DICE_FACES = ['🎲', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+
+    const themeBtn = document.getElementById('themeBtn');
+    const board = document.getElementById('board');
+    const boardCells = [...document.querySelectorAll('.board-cell')];
+    const detailsBox = document.getElementById('detailsBox');
+    const boardScroller = document.getElementById('boardScroller');
+    const playerNameInput = document.getElementById('playerNameInput');
+    const createRoomBtn = document.getElementById('createRoomBtn');
+    const joinRoomBtn = document.getElementById('joinRoomBtn');
+    const roomCodeInput = document.getElementById('roomCodeInput');
+    const roomStatus = document.getElementById('roomStatus');
+    const roomCodeLabel = document.getElementById('roomCodeLabel');
+    const playerPosition = document.getElementById('playerPosition');
+    const playerCoins = document.getElementById('playerCoins');
+    const playerLaps = document.getElementById('playerLaps');
+    const playerOwned = document.getElementById('playerOwned');
+    const turnLabel = document.getElementById('turnLabel');
+    const playersList = document.getElementById('playersList');
+    const logList = document.getElementById('logList');
+    const rollBtn = document.getElementById('rollBtn');
+    const chanceBtn = document.getElementById('chanceBtn');
+    const buyBtnMain = document.getElementById('buyBtnMain');
+    const resetRoomBtn = document.getElementById('resetRoomBtn');
+    const prevCellBtn = document.getElementById('prevCellBtn');
+    const nextCellBtn = document.getElementById('nextCellBtn');
+    const focusPlayerBtn = document.getElementById('focusPlayerBtn');
+    const chanceOverlay = document.getElementById('chanceOverlay');
+    const chanceText = document.getElementById('chanceText');
+    const closeChanceBtn = document.getElementById('closeChanceBtn');
+    const dice = document.getElementById('dice');
+    const diceText = document.getElementById('diceText');
+
+    const playerId = getLocalPlayerId();
+    const savedName = localStorage.getItem('skumbropoly_name') || '';
+    playerNameInput.value = savedName;
+
+    let roomCode = localStorage.getItem('skumbropoly_room') || '';
+    let roomUnsub = null;
+    let currentRoom = null;
+    let activeCellIndex = 0;
+    let localDiceTimer = null;
+    let tokenEls = new Map();
+    let pendingChance = null;
+
+    const cells = {
+      0: { name: 'Старт / Самара', type: 'start', text: 'Пересекаешь старт — получаешь 200 копчекоинов за упрямство.' },
+      1: { name: 'Подвалье', type: 'property', price: 120, rent: 24, badge: 'свежий актив', text: 'Классическая недвижимость для тех, кто хочет красоты, дороги и легкой жести.' },
+      2: { name: 'СыСа', type: 'property', price: 140, rent: 28, badge: 'трасса с именем', text: 'Клетка с характером. Покупают те, кто любит и маршрут, и загадочное название.' },
+      3: { name: 'Шанс', type: 'chance', text: 'Тяни карту и смотри, что жизнь приготовила на этот раз.' },
+      4: { name: 'Башкирия', type: 'property', price: 220, rent: 44, badge: 'плацкарт deluxe', text: 'Пыль, хостел, гордость. Актив для серьезной скумбрийной души.' },
+      5: { name: 'Остановка пожрать', type: 'bonus', value: 75, text: 'Редкая добрая клетка. Просто поешь и воспрянь.' },
+      6: { name: 'Минводы', type: 'property', price: 260, rent: 52, badge: 'летнее копчение', text: 'Солидная южная позиция для тех, кто любит большие планы.' },
+      7: { name: 'Кофе из Пятерки', type: 'property', price: 90, rent: 18, badge: 'сомнительная сила', text: 'Актив с риском для психики, но с высоким культурным значением.' },
+      8: { name: 'Узбекистан', type: 'property', price: 320, rent: 64, badge: 'большой выезд', text: 'Международная скумбрийная недвижимость повышенной амбициозности.' },
+      9: { name: 'Киргизия', type: 'property', price: 360, rent: 72, badge: 'горы и жизнь', text: 'Высокогорный актив для тех, кто плохо переносит скуку.' },
+      10: { name: 'Выброска на эльке', type: 'jail', text: 'Формально не тюрьма, а транспортная коррекция планов.' },
+      11: { name: 'Хостел', type: 'tax', value: 80, text: 'Заплати за интеллигентную скученность и ночь среди своих и не очень.' },
+      12: { name: 'Ремнабор', type: 'property', price: 100, rent: 20, badge: 'цивилизация', text: 'Один из важнейших активов на рынке здравого смысла.' },
+      13: { name: 'Плацкарт', type: 'property', price: 150, rent: 30, badge: 'аристократия', text: 'Люкс без пафоса. Клетка силы и запаха лапши.' },
+      14: { name: 'Пыль дорог', type: 'property', price: 170, rent: 34, badge: 'натуральный скраб', text: 'Без нее любая поездка выглядит подозрительно приличной.' },
+      15: { name: 'Шанс', type: 'chance', text: 'Опять шанс. В этой жизни он повторяется подозрительно часто.' },
+      16: { name: 'Грэвел', type: 'property', price: 180, rent: 36, badge: 'честная поверхность', text: 'Актив, на котором умирают понты и рождается правда.' },
+      17: { name: 'Эверестинг', type: 'tax', value: 120, text: 'Психологический ущерб. Заплати и подумай, зачем тебе это вообще.' },
+      18: { name: 'Термы', type: 'bonus', value: 100, text: 'Тепло, пар и временное ощущение, что жизнь наладилась.' },
+      19: { name: 'Костер', type: 'property', price: 110, rent: 22, badge: 'байки и дым', text: 'Тут конвертируют усталость в клубную мифологию.' },
+      20: { name: 'Горное копчение', type: 'free', text: 'Просто постой и подумай, как ты сюда вообще доехал.' },
+      21: { name: 'День Потаскумбрии', type: 'property', price: 210, rent: 42, badge: 'главный праздник', text: 'Тут празднуют рыбу, движение и правильную степень всратости.' },
+      22: { name: 'Ски-тур', type: 'property', price: 160, rent: 32, badge: 'зимняя классика', text: 'Покупают те, кому мало одной формы страдания.' },
+      23: { name: 'Каток', type: 'property', price: 130, rent: 26, badge: 'побочный квест', text: 'Небольшой, но атмосферный актив для межсезонья.' },
+      24: { name: 'Горный бонус', type: 'bonus', value: 150, text: 'Редкая удача: красиво пострадал и даже что-то с этого получил.' },
+      25: { name: 'Шанс', type: 'chance', text: 'Тяни карту. Судьба опять решила поучаствовать.' },
+      26: { name: 'Кэмп', type: 'property', price: 190, rent: 38, badge: 'вписаться', text: 'Актив для тех, кто ценит выезды с бытом, дымом и странными решениями.' },
+      27: { name: 'GPX', type: 'property', price: 80, rent: 16, badge: 'магический свиток', text: 'Скромная, но могущественная вещь. Без нее быстро начинается фольклор.' },
+      28: { name: 'Станция', type: 'bonus', value: 60, text: 'Получаешь бонус за грамотную логистику и своевременное смирение.' },
+      29: { name: 'Горы', type: 'property', price: 280, rent: 56, badge: 'выше только кризис', text: 'Большой красивый актив. Дорогой, тяжелый, но очень уважаемый.' },
+      30: { name: 'Скумбрия бесплатно', type: 'free', text: 'Сидишь на рыбе, восстанавливаешь мораль и вспоминаешь, зачем все это.' },
+      31: { name: 'Насос', type: 'property', price: 95, rent: 19, badge: 'держит мир', text: 'Одна из опор цивилизации и скумбрийной устойчивости.' },
+      32: { name: 'Дождь', type: 'tax', value: 70, text: 'Заплати за мокрую разметку, холодные ладони и дополнительную серьезность.' },
+      33: { name: 'Мост', type: 'property', price: 115, rent: 23, badge: 'скользко и честно', text: 'Небольшой актив, который учит уважать поверхность.' },
+      34: { name: 'Встречный ветер', type: 'tax', value: 90, text: 'Налог на характер. Просто отдай деньги и не возмущайся.' },
+      35: { name: 'Асфальт', type: 'property', price: 150, rent: 30, badge: 'обманчивый уют', text: 'Вроде бы спокойно, но потом все равно станет сложно.' },
+      36: { name: 'Грязь', type: 'property', price: 170, rent: 34, badge: 'посвящение', text: 'Берут не ради комфорта, а ради честности происходящего.' },
+      37: { name: 'Сон после', type: 'bonus', value: 50, text: 'Маленькая награда за то, что ты вообще вывез этот день.' },
+      38: { name: 'Скумбрия', type: 'property', price: 130, rent: 26, badge: 'тотем и пища', text: 'Символический актив с сильным культурным фундаментом.' },
+      39: { name: 'Легенда', type: 'property', price: 300, rent: 60, badge: 'рассказывать месяц', text: 'Большой дорогой актив. Приносит уважение и нескончаемые пересказы.' }
+    };
+
+    const chanceCards = [
+      { text: 'Ты поверил в фразу "там лайт". Потеряй 70 копчекоинов за наивность.', coins: -70 },
+      { text: 'На остановке тебе перепал лишний батончик. Получи 60 копчекоинов.', coins: 60 },
+      { text: 'Ты нашел магазин раньше всех. Получи 90 копчекоинов и одобрение стаи.', coins: 90 },
+      { text: 'Пробил колесо в самый красивый момент. Заплати 50 копчекоинов за материал для будущих баек.', coins: -50 },
+      { text: 'Ветер внезапно стал попутным. Продвинься на 3 клетки вперед.', move: 3 },
+      { text: 'Твоя мораль просела. Отправляйся на выброску на эльке.', goTo: 10 },
+      { text: 'Ты так хорошо всех ждал, что заслужил 80 копчекоинов уважения.', coins: 80 },
+      { text: 'Случайный человек угостил тебя кофе. Получи 40 копчекоинов и теплое чувство.', coins: 40 },
+      { text: 'Ты решил геройствовать без еды. Потеряй 60 копчекоинов и немного лица.', coins: -60 },
+      { text: 'Тебя накрыло вдохновением. Перейди сразу на Башкирию.', goTo: 4 }
+    ];
+
+    function getLocalPlayerId() {
+      let id = localStorage.getItem('skumbropoly_player_id');
+      if (!id) {
+        id = 'p_' + Math.random().toString(36).slice(2, 10);
+        localStorage.setItem('skumbropoly_player_id', id);
+      }
+      return id;
+    }
+
+    function setThemeIcon() {
+      themeBtn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+      setThemeIcon();
+    }
+
+    themeBtn.addEventListener('click', toggleTheme);
+    if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+    setThemeIcon();
+
+    function roomRef(code) {
+      return ref(db, `skumbropoly_rooms/${code}`);
+    }
+
+    function createEmptyRoom(code, hostName) {
+      return {
+        createdAt: Date.now(),
+        hostId: playerId,
+        status: 'playing',
+        currentTurnIndex: 0,
+        lastDice: 0,
+        lastAction: `${hostName} создал комнату ${code}`,
+        players: {
+          [playerId]: {
+            id: playerId,
+            name: hostName,
+            color: PLAYER_COLORS[0],
+            position: 0,
+            coins: 1500,
+            laps: 0,
+            owned: {},
+            joinedAt: Date.now(),
+            online: true
+          }
+        },
+        turnOrder: [playerId],
+        ownership: {},
+        log: {
+          [Date.now()]: `${hostName} создал комнату ${code}`
+        }
+      };
+    }
+
+    function getNameOrAlert() {
+      const name = playerNameInput.value.trim();
+      if (!name) {
+        roomStatus.textContent = 'Сначала введи имя скумбрии.';
+        return '';
+      }
+      localStorage.setItem('skumbropoly_name', name);
+      return name;
+    }
+
+    function randomRoomCode() {
+      return Math.random().toString(36).slice(2, 6).toUpperCase();
+    }
+
+    async function createRoom() {
+      const name = getNameOrAlert();
+      if (!name) return;
+      createRoomBtn.disabled = true;
+      try {
+        let code = randomRoomCode();
+        let tries = 0;
+        while (tries < 10) {
+          const snap = await get(roomRef(code));
+          if (!snap.exists()) break;
+          code = randomRoomCode();
+          tries++;
+        }
+        await set(roomRef(code), createEmptyRoom(code, name));
+        roomCodeInput.value = code;
+        connectToRoom(code);
+      } catch (e) {
+        roomStatus.textContent = 'Не удалось создать комнату.';
+      } finally {
+        createRoomBtn.disabled = false;
+      }
+    }
+
+    async function joinRoom() {
+      const name = getNameOrAlert();
+      if (!name) return;
+      const code = roomCodeInput.value.trim().toUpperCase();
+      if (!code) {
+        roomStatus.textContent = 'Введи код комнаты.';
+        return;
+      }
+      joinRoomBtn.disabled = true;
+      try {
+        const snap = await get(roomRef(code));
+        if (!snap.exists()) {
+          roomStatus.textContent = 'Комната не найдена.';
+          joinRoomBtn.disabled = false;
+          return;
+        }
+        const room = snap.val();
+        const players = room.players || {};
+        const turnOrder = room.turnOrder || [];
+
+        if (!players[playerId] && turnOrder.length >= 4) {
+          roomStatus.textContent = 'Комната уже полная.';
+          joinRoomBtn.disabled = false;
+          return;
+        }
+
+        if (!players[playerId]) {
+          const color = PLAYER_COLORS[turnOrder.length % PLAYER_COLORS.length];
+          await update(roomRef(code), {
+            [`players/${playerId}`]: {
+              id: playerId,
+              name,
+              color,
+              position: 0,
+              coins: 1500,
+              laps: 0,
+              owned: {},
+              joinedAt: Date.now(),
+              online: true
+            },
+            turnOrder: [...turnOrder, playerId],
+            [`log/${Date.now()}`]: `${name} вошел в комнату.`
+          });
+        } else {
+          await update(roomRef(code), {
+            [`players/${playerId}/name`]: name,
+            [`players/${playerId}/online`]: true,
+            [`log/${Date.now()}`]: `${name} вернулся в комнату.`
+          });
+        }
+        connectToRoom(code);
+      } catch (e) {
+        roomStatus.textContent = 'Не удалось войти в комнату.';
+      } finally {
+        joinRoomBtn.disabled = false;
+      }
+    }
+
+    function connectToRoom(code) {
+      if (roomUnsub) roomUnsub();
+      roomCode = code;
+      localStorage.setItem('skumbropoly_room', code);
+      roomCodeLabel.textContent = code;
+      roomStatus.textContent = `Подключено к комнате ${code}`;
+      const targetRef = roomRef(code);
+      roomUnsub = onValue(targetRef, snap => {
+        if (!snap.exists()) {
+          currentRoom = null;
+          roomStatus.textContent = 'Комната исчезла.';
+          return;
+        }
+        currentRoom = snap.val();
+        renderRoom();
+      });
+    }
+
+    function getPlayersOrdered() {
+      if (!currentRoom) return [];
+      const players = currentRoom.players || {};
+      const turnOrder = currentRoom.turnOrder || [];
+      return turnOrder.map(id => players[id]).filter(Boolean);
+    }
+
+    function getMe() {
+      return currentRoom?.players?.[playerId] || null;
+    }
+
+    function isMyTurn() {
+      if (!currentRoom) return false;
+      const turnOrder = currentRoom.turnOrder || [];
+      const currentId = turnOrder[currentRoom.currentTurnIndex || 0];
+      return currentId === playerId;
+    }
+
+    function renderRoom() {
+      renderPlayers();
+      renderLog();
+      renderBoardOwnership();
+      renderTokens();
+      renderMe();
+      updateControls();
+      const action = currentRoom?.lastAction || 'Ждем движения.';
+      diceText.textContent = action;
+      if ((currentRoom?.lastDice || 0) > 0) {
+        dice.textContent = DICE_FACES[currentRoom.lastDice];
+      }
+    }
+
+    function renderPlayers() {
+      const players = getPlayersOrdered();
+      if (!players.length) {
+        playersList.innerHTML = '<div class="player-card">Пока никого.</div>';
+        return;
+      }
+      const currentTurnPlayerId = (currentRoom.turnOrder || [])[currentRoom.currentTurnIndex || 0];
+      playersList.innerHTML = '';
+      players.forEach(player => {
+        const el = document.createElement('div');
+        el.className = 'player-card';
+        const ownedCount = Object.keys(player.owned || {}).length;
+        el.innerHTML = `
+          <div class="player-row">
+            <div class="player-name"><span class="player-color" style="background:${player.color};"></span>${escapeHtml(player.name)}</div>
+            <div>
+              ${player.id === currentTurnPlayerId ? '<span class="turn-badge">ход</span>' : ''}
+              ${player.id === playerId ? '<span class="me-badge">ты</span>' : ''}
+            </div>
+          </div>
+          <div>клетка: ${escapeHtml(cells[player.position]?.name || 'Старт')}</div>
+          <div>копчекоины: ${player.coins} • круги: ${player.laps} • активы: ${ownedCount}</div>
+        `;
+        playersList.appendChild(el);
+      });
+    }
+
+    function renderLog() {
+      const logs = Object.values(currentRoom?.log || {}).slice(-12).reverse();
+      if (!logs.length) {
+        logList.innerHTML = '<div class="log-item">Ходов пока не было.</div>';
+        return;
+      }
+      logList.innerHTML = '';
+      logs.forEach(item => {
+        const el = document.createElement('div');
+        el.className = 'log-item';
+        el.textContent = item;
+        logList.appendChild(el);
+      });
+    }
+
+    function renderMe() {
+      const me = getMe();
+      if (!me) {
+        playerPosition.textContent = '—';
+        playerCoins.textContent = '—';
+        playerLaps.textContent = '—';
+        playerOwned.textContent = '—';
+        turnLabel.textContent = '—';
+        return;
+      }
+      const turnOrder = currentRoom.turnOrder || [];
+      const turnPlayer = currentRoom.players?.[turnOrder[currentRoom.currentTurnIndex || 0]];
+      playerPosition.textContent = cells[me.position]?.name || 'Старт';
+      playerCoins.textContent = me.coins;
+      playerLaps.textContent = me.laps;
+      playerOwned.textContent = Object.keys(me.owned || {}).length;
+      turnLabel.textContent = turnPlayer ? turnPlayer.name : '—';
+      setActiveCell(me.position);
+    }
+
+    function updateControls() {
+      const canAct = !!currentRoom && !!getMe();
+      const myTurn = canAct && isMyTurn();
+      const me = getMe();
+      const cell = me ? cells[me.position] : null;
+      const ownerId = currentRoom?.ownership?.[me?.position];
+      const canBuy = !!(myTurn && cell?.type === 'property' && !ownerId && me.coins >= cell.price);
+      rollBtn.disabled = !myTurn;
+      chanceBtn.disabled = !(myTurn && cell?.type === 'chance');
+      buyBtnMain.disabled = !canBuy;
+      resetRoomBtn.disabled = !(currentRoom && currentRoom.hostId === playerId);
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function renderBoardOwnership() {
+      boardCells.forEach(cellEl => {
+        const idx = Number(cellEl.dataset.index);
+        const ownerId = currentRoom?.ownership?.[idx];
+        cellEl.classList.toggle('owned', !!ownerId);
+      });
+    }
+
+    function setActiveCell(index) {
+      activeCellIndex = index;
+      boardCells.forEach(cell => cell.classList.toggle('active', Number(cell.dataset.index) === index));
+      const cell = cells[index];
+      if (!cell) return;
+      const ownerId = currentRoom?.ownership?.[index];
+      const owner = ownerId ? currentRoom.players?.[ownerId] : null;
+      let badge = cell.badge || cell.type;
+      if (owner) badge = `владелец: ${owner.name}`;
+      detailsBox.innerHTML = `
+        <div class="details-title">${cell.name}</div>
+        <div class="details-text">${cell.text}</div>
+        <div class="details-badge">${badge}</div>
+        <div class="details-actions">
+          ${cell.type === 'property' ? '<button class="action-btn" id="buyBtnInner" type="button">купить</button>' : ''}
+          ${cell.type === 'chance' ? '<button class="action-btn" id="chanceBtnInner" type="button">тянуть шанс</button>' : ''}
+        </div>
+      `;
+      const buyBtnInner = document.getElementById('buyBtnInner');
+      if (buyBtnInner) buyBtnInner.addEventListener('click', buyCurrentCell);
+      const chanceBtnInner = document.getElementById('chanceBtnInner');
+      if (chanceBtnInner) chanceBtnInner.addEventListener('click', drawChance);
+      if (window.innerWidth <= 720) scrollToCell(index);
+    }
+
+    function scrollToCell(index) {
+      const cellEl = board.querySelector(`.board-cell[data-index="${index}"]`);
+      if (!cellEl) return;
+      const targetLeft = cellEl.offsetLeft - boardScroller.clientWidth / 2 + cellEl.clientWidth / 2;
+      boardScroller.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
+    }
+
+    function renderTokens() {
+      tokenEls.forEach(el => el.remove());
+      tokenEls.clear();
+      if (!currentRoom?.players) return;
+
+      const grouped = {};
+      Object.values(currentRoom.players).forEach(player => {
+        const pos = player.position || 0;
+        if (!grouped[pos]) grouped[pos] = [];
+        grouped[pos].push(player);
+      });
+
+      Object.entries(grouped).forEach(([posStr, players]) => {
+        const pos = Number(posStr);
+        const cellEl = board.querySelector(`.board-cell[data-index="${pos}"]`);
+        if (!cellEl) return;
+        const boardRect = board.getBoundingClientRect();
+        const rect = cellEl.getBoundingClientRect();
+        const offsets = [
+          { x: -12, y: -12 },
+          { x: 12, y: -12 },
+          { x: -12, y: 12 },
+          { x: 12, y: 12 }
+        ];
+        players.forEach((player, idx) => {
+          const token = document.createElement('div');
+          token.className = 'token';
+          token.style.background = player.color || PLAYER_COLORS[0];
+          token.textContent = (player.name || '?').slice(0, 2).toUpperCase();
+          const off = offsets[idx] || { x: 0, y: 0 };
+          const left = rect.left - boardRect.left + rect.width / 2 - 17 + off.x;
+          const top = rect.top - boardRect.top + rect.height / 2 - 17 + off.y;
+          token.style.left = `${left}px`;
+          token.style.top = `${top}px`;
+          token.style.transform = `rotate(${pos * 7}deg)`;
+          token.title = player.name;
+          board.appendChild(token);
+          tokenEls.set(player.id, token);
+        });
+      });
+    }
+
+    function nextTurnIndex(room) {
+      const order = room.turnOrder || [];
+      if (!order.length) return 0;
+      return ((room.currentTurnIndex || 0) + 1) % order.length;
+    }
+
+    function startDiceAnimation() {
+      if (localDiceTimer) clearInterval(localDiceTimer);
+      dice.classList.add('rolling');
+      let i = 0;
+      localDiceTimer = setInterval(() => {
+        i = (i % 6) + 1;
+        dice.textContent = DICE_FACES[i];
+      }, 90);
+    }
+
+    function stopDiceAnimation(value) {
+      if (localDiceTimer) clearInterval(localDiceTimer);
+      localDiceTimer = null;
+      dice.classList.remove('rolling');
+      dice.textContent = DICE_FACES[value] || '🎲';
+    }
+
+    function computeLanding(oldPos, roll) {
+      let newPos = (oldPos + roll) % 40;
+      const passedStart = oldPos + roll >= 40;
+      return { newPos, passedStart };
+    }
+
+    function appendLogPatch(text) {
+      return { [`log/${Date.now()}_${Math.random().toString(36).slice(2, 6)}`]: text };
+    }
+
+    async function rollDice() {
+      if (!currentRoom || !isMyTurn()) return;
+      startDiceAnimation();
+      const delay = 1000 + Math.floor(Math.random() * 600);
+      setTimeout(async () => {
+        try {
+          await runTransaction(roomRef(roomCode), room => {
+            if (!room) return room;
+            const order = room.turnOrder || [];
+            const currentId = order[room.currentTurnIndex || 0];
+            if (currentId !== playerId) return room;
+            const player = room.players?.[playerId];
+            if (!player) return room;
+
+            const roll = Math.floor(Math.random() * 6) + 1;
+            const { newPos, passedStart } = computeLanding(player.position || 0, roll);
+            player.position = newPos;
+            if (passedStart) {
+              player.coins = (player.coins || 0) + 200;
+              player.laps = (player.laps || 0) + 1;
+            }
+
+            let message = `${player.name} бросил ${roll} и пришел на клетку "${cells[newPos].name}".`;
+            const landingCell = cells[newPos];
+            const ownerId = room.ownership?.[newPos];
+
+            if (landingCell.type === 'bonus') {
+              player.coins += landingCell.value || 0;
+              message += ` Получил ${landingCell.value} копчекоинов.`;
+            }
+            if (landingCell.type === 'tax') {
+              player.coins = Math.max(0, (player.coins || 0) - (landingCell.value || 0));
+              message += ` Потерял ${landingCell.value} копчекоинов.`;
+            }
+            if (landingCell.type === 'property' && ownerId && ownerId !== playerId) {
+              const rent = landingCell.rent || 0;
+              const owner = room.players?.[ownerId];
+              player.coins = Math.max(0, (player.coins || 0) - rent);
+              if (owner) owner.coins = (owner.coins || 0) + rent;
+              message += ` Заплатил аренду ${rent}.`;
+            }
+
+            room.lastDice = roll;
+            room.lastAction = message;
+            room.log = room.log || {};
+            room.log[`${Date.now()}_${Math.random().toString(36).slice(2,6)}`] = message;
+
+            if (landingCell.type === 'chance') {
+              room.pendingChance = {
+                playerId,
+                position: newPos,
+                createdAt: Date.now()
+              };
+              room.lastAction = `${player.name} пришел на "Шанс" и должен тянуть карту.`;
+              room.log[`${Date.now()}_${Math.random().toString(36).slice(2,6)}`] = room.lastAction;
+            } else {
+              room.currentTurnIndex = nextTurnIndex(room);
+            }
+            return room;
+          });
+          const latest = await get(roomRef(roomCode));
+          stopDiceAnimation(latest.val()?.lastDice || 1);
+        } catch (e) {
+          stopDiceAnimation(1);
+        }
+      }, delay);
+    }
+
+    async function buyCurrentCell() {
+      if (!currentRoom || !isMyTurn()) return;
+      const me = getMe();
+      if (!me) return;
+      const position = me.position;
+      const cell = cells[position];
+      if (!cell || cell.type !== 'property') return;
+      await runTransaction(roomRef(roomCode), room => {
+        if (!room) return room;
+        const order = room.turnOrder || [];
+        const currentId = order[room.currentTurnIndex || 0];
+        if (currentId !== playerId) return room;
+        const player = room.players?.[playerId];
+        if (!player) return room;
+        const pos = player.position;
+        const currentCell = cells[pos];
+        if (!currentCell || currentCell.type !== 'property') return room;
+        room.ownership = room.ownership || {};
+        if (room.ownership[pos]) return room;
+        if ((player.coins || 0) < currentCell.price) return room;
+        player.coins -= currentCell.price;
+        room.ownership[pos] = playerId;
+        player.owned = player.owned || {};
+        player.owned[pos] = true;
+        const message = `${player.name} купил клетку "${currentCell.name}" за ${currentCell.price}.`;
+        room.lastAction = message;
+        room.log = room.log || {};
+        room.log[`${Date.now()}_${Math.random().toString(36).slice(2,6)}`] = message;
+        return room;
+      });
+    }
+
+    function drawChance() {
+      if (!currentRoom || !isMyTurn()) return;
+      if (currentRoom.pendingChance?.playerId !== playerId && cells[getMe()?.position || 0]?.type !== 'chance') return;
+      pendingChance = chanceCards[Math.floor(Math.random() * chanceCards.length)];
+      chanceText.textContent = pendingChance.text;
+      chanceOverlay.classList.add('open');
+    }
+
+    async function applyChance() {
+      if (!pendingChance || !currentRoom) {
+        chanceOverlay.classList.remove('open');
+        return;
+      }
+      const card = pendingChance;
+      chanceOverlay.classList.remove('open');
+      pendingChance = null;
+
+      await runTransaction(roomRef(roomCode), room => {
+        if (!room) return room;
+        const order = room.turnOrder || [];
+        const currentId = order[room.currentTurnIndex || 0];
+        if (currentId !== playerId) return room;
+        const player = room.players?.[playerId];
+        if (!player) return room;
+
+        if (typeof card.coins === 'number') {
+          player.coins = Math.max(0, (player.coins || 0) + card.coins);
+        }
+        if (typeof card.move === 'number') {
+          const result = computeLanding(player.position || 0, card.move);
+          player.position = result.newPos;
+          if (result.passedStart) {
+            player.coins += 200;
+            player.laps = (player.laps || 0) + 1;
+          }
+        }
+        if (typeof card.goTo === 'number') {
+          const passedStart = card.goTo < (player.position || 0);
+          player.position = card.goTo;
+          if (passedStart) {
+            player.coins += 200;
+            player.laps = (player.laps || 0) + 1;
+          }
+        }
+
+        const cell = cells[player.position];
+        const ownerId = room.ownership?.[player.position];
+        let message = `${player.name} вытянул шанс: ${card.text}`;
+
+        if (cell?.type === 'bonus') {
+          player.coins += cell.value || 0;
+        }
+        if (cell?.type === 'tax') {
+          player.coins = Math.max(0, (player.coins || 0) - (cell.value || 0));
+        }
+        if (cell?.type === 'property' && ownerId && ownerId !== playerId) {
+          const owner = room.players?.[ownerId];
+          player.coins = Math.max(0, (player.coins || 0) - (cell.rent || 0));
+          if (owner) owner.coins = (owner.coins || 0) + (cell.rent || 0);
+        }
+
+        room.pendingChance = null;
+        room.currentTurnIndex = nextTurnIndex(room);
+        room.lastAction = message;
+        room.log = room.log || {};
+        room.log[`${Date.now()}_${Math.random().toString(36).slice(2,6)}`] = message;
+        return room;
+      });
+    }
+
+    async function resetRoomGame() {
+      if (!currentRoom || currentRoom.hostId !== playerId) return;
+      await runTransaction(roomRef(roomCode), room => {
+        if (!room) return room;
+        const order = room.turnOrder || [];
+        room.currentTurnIndex = 0;
+        room.lastDice = 0;
+        room.pendingChance = null;
+        room.ownership = {};
+        room.log = { [`${Date.now()}_reset`]: 'Хост начал новую партию.' };
+        room.lastAction = 'Новая партия началась.';
+        (room.turnOrder || []).forEach((id, idx) => {
+          if (!room.players?.[id]) return;
+          room.players[id].position = 0;
+          room.players[id].coins = 1500;
+          room.players[id].laps = 0;
+          room.players[id].owned = {};
+          if (!room.players[id].color) room.players[id].color = PLAYER_COLORS[idx % PLAYER_COLORS.length];
+        });
+        return room;
+      });
+      stopDiceAnimation(0);
+    }
+
+    function moveFocus(step) {
+      const next = (activeCellIndex + step + 40) % 40;
+      setActiveCell(next);
+    }
+
+    function cleanupPresence() {
+      if (!roomCode) return;
+      update(roomRef(roomCode), {
+        [`players/${playerId}/online`]: false
+      }).catch(() => {});
+    }
+
+    boardCells.forEach(cell => {
+      cell.addEventListener('click', () => setActiveCell(Number(cell.dataset.index)));
+    });
+
+    createRoomBtn.addEventListener('click', createRoom);
+    joinRoomBtn.addEventListener('click', joinRoom);
+    rollBtn.addEventListener('click', rollDice);
+    chanceBtn.addEventListener('click', drawChance);
+    buyBtnMain.addEventListener('click', buyCurrentCell);
+    resetRoomBtn.addEventListener('click', resetRoomGame);
+    prevCellBtn.addEventListener('click', () => moveFocus(-1));
+    nextCellBtn.addEventListener('click', () => moveFocus(1));
+    focusPlayerBtn.addEventListener('click', () => {
+      const me = getMe();
+      if (!me) return;
+      setActiveCell(me.position);
+      scrollToCell(me.position);
+    });
+    closeChanceBtn.addEventListener('click', applyChance);
+    chanceOverlay.addEventListener('click', e => {
+      if (e.target === chanceOverlay) applyChance();
+    });
+    playerNameInput.addEventListener('input', () => {
+      localStorage.setItem('skumbropoly_name', playerNameInput.value.trim());
+    });
+    window.addEventListener('resize', () => renderTokens());
+    window.addEventListener('beforeunload', cleanupPresence);
+
+    if (roomCode) {
+      roomCodeInput.value = roomCode;
+      connectToRoom(roomCode);
+    }
+
+    setActiveCell(0);
+  </script>
+</body>
+</html>
