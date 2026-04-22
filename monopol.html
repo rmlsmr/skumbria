@@ -45,7 +45,7 @@
       flex-wrap: wrap;
       align-items: center;
     }
-    .btn, .theme-btn {
+    .btn, .theme-btn, .action-btn {
       font: inherit;
       color: inherit;
       background: transparent;
@@ -59,7 +59,7 @@
       justify-content: center;
       gap: 6px;
     }
-    .btn:hover, .theme-btn:hover {
+    .btn:hover, .theme-btn:hover, .action-btn:hover {
       background: rgba(255,255,255,0.06);
     }
     .layout {
@@ -96,6 +96,7 @@
     .fact-list {
       display: grid;
       gap: 10px;
+      margin-bottom: 14px;
     }
     .fact {
       border: 1px solid rgba(120,120,120,0.2);
@@ -112,12 +113,48 @@
       line-height: 1.4;
       opacity: 0.8;
     }
+    .player-box {
+      border: 1px solid rgba(120,120,120,0.2);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 14px;
+    }
+    .player-stats {
+      display: grid;
+      gap: 8px;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    .player-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .mobile-nav {
+      display: none;
+      margin-top: 10px;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 8px;
+    }
+    .mobile-nav .action-btn {
+      width: 100%;
+      min-height: 44px;
+      font-weight: 700;
+    }
     .board-wrap {
       padding: 16px;
+    }
+    .board-scroller {
+      width: 100%;
+      overflow-x: auto;
+      overflow-y: visible;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 6px;
     }
     .board {
       aspect-ratio: 1 / 1;
       width: 100%;
+      min-width: 760px;
       display: grid;
       grid-template-columns: 120px repeat(9, 1fr) 120px;
       grid-template-rows: 120px repeat(9, 1fr) 120px;
@@ -140,7 +177,8 @@
       justify-content: space-between;
       overflow: hidden;
       position: relative;
-      transition: background 0.15s ease, transform 0.12s ease;
+      transition: background 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
+      cursor: pointer;
     }
     body.dark .cell {
       border-color: rgba(185,195,205,0.35);
@@ -152,6 +190,24 @@
     }
     body.dark .cell:hover {
       background: #242c35;
+    }
+    .cell.active {
+      background: #d8ecff;
+      box-shadow: inset 0 0 0 3px rgba(0,102,204,0.35);
+      z-index: 3;
+    }
+    body.dark .cell.active {
+      background: #29384a;
+      box-shadow: inset 0 0 0 3px rgba(88,166,255,0.35);
+    }
+    .cell.owned::after {
+      content: "✓";
+      position: absolute;
+      right: 6px;
+      bottom: 6px;
+      font-size: 14px;
+      opacity: 0.75;
+      font-weight: 700;
     }
     .corner {
       align-items: center;
@@ -226,36 +282,114 @@
       font-size: clamp(14px, 1.6vw, 22px);
       opacity: 0.85;
     }
-    .stash {
+    .details-box {
       position: absolute;
       right: 18px;
       bottom: 18px;
-      max-width: 300px;
+      max-width: 320px;
       background: rgba(255,255,255,0.9);
       border: 1px solid rgba(120,120,120,0.25);
       border-radius: 14px;
       padding: 12px;
       backdrop-filter: blur(4px);
     }
-    body.dark .stash {
+    body.dark .details-box {
       background: rgba(17,21,27,0.92);
       border-color: rgba(255,255,255,0.08);
     }
-    .stash-title {
+    .details-title {
       font-size: 16px;
       font-weight: 700;
       margin-bottom: 8px;
     }
-    .stash-text {
+    .details-text {
       font-size: 14px;
       line-height: 1.42;
       opacity: 0.86;
+      margin-bottom: 10px;
     }
-    .board-footnote {
-      margin-top: 10px;
-      font-size: 13px;
-      opacity: 0.72;
-      line-height: 1.4;
+    .details-badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid rgba(120,120,120,0.3);
+      margin-bottom: 10px;
+    }
+    .details-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .fish-token {
+      position: absolute;
+      width: 38px;
+      height: 24px;
+      border-radius: 999px 999px 999px 999px;
+      background: linear-gradient(90deg, #5d4638 0%, #8a684d 50%, #3c2d24 100%);
+      border: 2px solid rgba(20,14,10,0.25);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+      z-index: 10;
+      transition: left 0.35s ease, top 0.35s ease, transform 0.35s ease;
+      pointer-events: none;
+    }
+    .fish-token::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 4px;
+      width: 24px;
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.12);
+    }
+    .fish-token::after {
+      content: "";
+      position: absolute;
+      right: -10px;
+      top: 5px;
+      width: 0;
+      height: 0;
+      border-top: 7px solid transparent;
+      border-bottom: 7px solid transparent;
+      border-left: 12px solid #4a382d;
+    }
+    .chance-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 999;
+    }
+    .chance-overlay.open {
+      display: flex;
+    }
+    .chance-card {
+      max-width: 460px;
+      width: 100%;
+      background: #fff8e8;
+      color: #222;
+      border-radius: 18px;
+      padding: 18px;
+      border: 3px solid #1f1f1f;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.35);
+      transform: rotate(-2deg);
+    }
+    .chance-card h2 {
+      margin: 0 0 10px 0;
+      font-size: 26px;
+    }
+    .chance-card p {
+      margin: 0 0 14px 0;
+      line-height: 1.45;
+    }
+    .chance-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
     }
     @media (max-width: 980px) {
       .layout {
@@ -271,7 +405,7 @@
       .cell-price {
         font-size: 9px;
       }
-      .stash {
+      .details-box {
         position: static;
         margin-top: 14px;
         max-width: none;
@@ -282,7 +416,31 @@
       .logo {
         margin-top: 14px;
       }
+      .fish-token {
+        width: 30px;
+        height: 20px;
+      }
     }
+    @media (max-width: 720px) {
+      .page {
+        padding: 10px;
+      }
+      .title {
+        font-size: 28px;
+      }
+      .sidebar-inner,
+      .board-wrap {
+        padding: 10px;
+      }
+      .player-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+      .mobile-nav {
+        display: grid;
+      }
+      .board {
+        mi
   </style>
 </head>
 <body>
@@ -303,7 +461,22 @@
         <div class="sidebar-inner">
           <div class="panel-title">Правила скумбрийного рынка</div>
           <div class="panel-copy">
-            Это декоративная монополия для души. Тут можно скупать не улицы, а жизненно важные скумбрийные активы: плацкарт, грэвел, кофе из Пятерки, ремнабор и право считать 60 км лайт-прогулкой.
+            Бросаешь кубик, двигаешь фишку-скумбрию, скупаешь полезные жизненные активы, тянешь карты "Шанс" и стараешься не разориться на собственных амбициях.
+          </div>
+
+          <div class="player-box">
+            <div class="panel-title" style="margin-bottom:8px;">Твоя скумбрия</div>
+            <div class="player-stats">
+              <div>Позиция: <b id="playerPosition">Старт</b></div>
+              <div>Копчекоинов: <b id="playerCoins">1500</b></div>
+              <div>Кругов по жизни: <b id="playerLaps">0</b></div>
+              <div>Собственность: <b id="playerOwned">0</b></div>
+            </div>
+            <div class="player-actions">
+              <button class="action-btn" id="rollBtn" type="button">бросить кубик</button>
+              <button class="action-btn" id="chanceBtn" type="button">шанс</button>
+              <button class="action-btn" id="resetBtn" type="button">заново</button>
+            </div>
           </div>
 
           <div class="fact-list">
@@ -313,15 +486,11 @@
             </div>
             <div class="fact">
               <div class="fact-title">Тюрьма</div>
-              <div class="fact-text">Здесь это не тюрьма, а вынужденная выброска на электричке после неверной оценки собственных сил.</div>
-            </div>
-            <div class="fact">
-              <div class="fact-title">Налог на роскошь</div>
-              <div class="fact-text">Оплата хостела, когда обещали палатки и высокодуховный минимализм.</div>
+              <div class="fact-text">Здесь это вынужденная выброска на электричке после неверной оценки собственных сил.</div>
             </div>
             <div class="fact">
               <div class="fact-title">Шанс</div>
-              <div class="fact-text">"Пробил колесо", "встретил встречный ветер", "нашел магазин", "залетел в легенду".</div>
+              <div class="fact-text">Можно пробить колесо, словить встречный ветер, найти магазин или внезапно стать легендой.</div>
             </div>
             <div class="fact">
               <div class="fact-title">Главная валюта</div>
@@ -332,75 +501,163 @@
       </aside>
 
       <section class="board-wrap">
-        <div class="board">
-          <div class="cell corner" style="grid-row:11;grid-column:1;"><span class="corner-icon">🚲</span>СТАРТ<br>САМАРА</div>
-          <div class="cell corner" style="grid-row:11;grid-column:11;"><span class="corner-icon">🚂</span>ВЫБРОСКА<br>НА ЭЛЬКЕ</div>
-          <div class="cell corner" style="grid-row:1;grid-column:11;"><span class="corner-icon">⛰️</span>ГОРНОЕ<br>КОПЧЕНИЕ</div>
-          <div class="cell corner" style="grid-row:1;grid-column:1;"><span class="corner-icon">🐟</span>СКУМБРИЯ<br>БЕСПЛАТНО</div>
+        <div class="board" id="board">
+          <div class="cell corner board-cell" data-index="0" style="grid-row:11;grid-column:1;"><span class="corner-icon">🚲</span>СТАРТ<br>САМАРА</div>
+          <div class="cell corner board-cell" data-index="10" style="grid-row:11;grid-column:11;"><span class="corner-icon">🚂</span>ВЫБРОСКА<br>НА ЭЛЬКЕ</div>
+          <div class="cell corner board-cell" data-index="20" style="grid-row:1;grid-column:11;"><span class="corner-icon">⛰️</span>ГОРНОЕ<br>КОПЧЕНИЕ</div>
+          <div class="cell corner board-cell" data-index="30" style="grid-row:1;grid-column:1;"><span class="corner-icon">🐟</span>СКУМБРИЯ<br>БЕСПЛАТНО</div>
 
-          <div class="cell" style="grid-row:11;grid-column:2;"><div><div class="band blue"></div><div class="cell-title">Подвалье</div></div><div class="cell-price">80 км страдания</div></div>
-          <div class="cell" style="grid-row:11;grid-column:3;"><div><div class="band blue"></div><div class="cell-title">СыСа</div></div><div class="cell-price">купи GPX</div></div>
-          <div class="cell" style="grid-row:11;grid-column:4;"><div><div class="band green"></div><div class="cell-title">Остановка пожрать</div></div><div class="cell-price">+3 к морали</div></div>
-          <div class="cell" style="grid-row:11;grid-column:5;"><div><div class="band orange"></div><div class="cell-title">Башкирия</div></div><div class="cell-price">плацкарт deluxe</div></div>
-          <div class="cell" style="grid-row:11;grid-column:6;"><div><div class="band gray"></div><div class="cell-title">Шанс</div></div><div class="cell-price">пробил колесо</div></div>
-          <div class="cell" style="grid-row:11;grid-column:7;"><div><div class="band red"></div><div class="cell-title">Минводы</div></div><div class="cell-price">летнее копчение</div></div>
-          <div class="cell" style="grid-row:11;grid-column:8;"><div><div class="band purple"></div><div class="cell-title">Кофе из Пятерки</div></div><div class="cell-price">сомнительная сила</div></div>
-          <div class="cell" style="grid-row:11;grid-column:9;"><div><div class="band orange"></div><div class="cell-title">Узбекистан</div></div><div class="cell-price">большой выезд</div></div>
-          <div class="cell" style="grid-row:11;grid-column:10;"><div><div class="band orange"></div><div class="cell-title">Киргизия</div></div><div class="cell-price">горы и жизнь</div></div>
+          <div class="cell board-cell" data-index="1" style="grid-row:11;grid-column:2;"><div><div class="band blue"></div><div class="cell-title">Подвалье</div></div><div class="cell-price">120</div></div>
+          <div class="cell board-cell" data-index="2" style="grid-row:11;grid-column:3;"><div><div class="band blue"></div><div class="cell-title">СыСа</div></div><div class="cell-price">140</div></div>
+          <div class="cell board-cell" data-index="3" style="grid-row:11;grid-column:4;"><div><div class="band gray"></div><div class="cell-title">Шанс</div></div><div class="cell-price">тянуть</div></div>
+          <div class="cell board-cell" data-index="4" style="grid-row:11;grid-column:5;"><div><div class="band orange"></div><div class="cell-title">Башкирия</div></div><div class="cell-price">220</div></div>
+          <div class="cell board-cell" data-index="5" style="grid-row:11;grid-column:6;"><div><div class="band green"></div><div class="cell-title">Остановка пожрать</div></div><div class="cell-price">+75</div></div>
+          <div class="cell board-cell" data-index="6" style="grid-row:11;grid-column:7;"><div><div class="band red"></div><div class="cell-title">Минводы</div></div><div class="cell-price">260</div></div>
+          <div class="cell board-cell" data-index="7" style="grid-row:11;grid-column:8;"><div><div class="band purple"></div><div class="cell-title">Кофе из Пятерки</div></div><div class="cell-price">90</div></div>
+          <div class="cell board-cell" data-index="8" style="grid-row:11;grid-column:9;"><div><div class="band orange"></div><div class="cell-title">Узбекистан</div></div><div class="cell-price">320</div></div>
+          <div class="cell board-cell" data-index="9" style="grid-row:11;grid-column:10;"><div><div class="band orange"></div><div class="cell-title">Киргизия</div></div><div class="cell-price">360</div></div>
 
-          <div class="cell" style="grid-row:10;grid-column:11;"><div><div class="band gray"></div><div class="cell-title">Хостел</div></div><div class="cell-price">налог на роскошь</div></div>
-          <div class="cell" style="grid-row:9;grid-column:11;"><div><div class="band green"></div><div class="cell-title">Ремнабор</div></div><div class="cell-price">цивилизация</div></div>
-          <div class="cell" style="grid-row:8;grid-column:11;"><div><div class="band purple"></div><div class="cell-title">Плацкарт</div></div><div class="cell-price">аристократия</div></div>
-          <div class="cell" style="grid-row:7;grid-column:11;"><div><div class="band red"></div><div class="cell-title">Пыль дорог</div></div><div class="cell-price">натуральный скраб</div></div>
-          <div class="cell" style="grid-row:6;grid-column:11;"><div><div class="band gray"></div><div class="cell-title">Шанс</div></div><div class="cell-price">встречный ветер</div></div>
-          <div class="cell" style="grid-row:5;grid-column:11;"><div><div class="band blue"></div><div class="cell-title">Грэвел</div></div><div class="cell-price">честная поверхность</div></div>
-          <div class="cell" style="grid-row:4;grid-column:11;"><div><div class="band red"></div><div class="cell-title">Эверестинг</div></div><div class="cell-price">психологический ущерб</div></div>
-          <div class="cell" style="grid-row:3;grid-column:11;"><div><div class="band green"></div><div class="cell-title">Термы</div></div><div class="cell-price">восстановление</div></div>
-          <div class="cell" style="grid-row:2;grid-column:11;"><div><div class="band purple"></div><div class="cell-title">Костер</div></div><div class="cell-price">байки и дым</div></div>
+          <div class="cell board-cell" data-index="11" style="grid-row:10;grid-column:11;"><div><div class="band gray"></div><div class="cell-title">Хостел</div></div><div class="cell-price">налог 80</div></div>
+          <div class="cell board-cell" data-index="12" style="grid-row:9;grid-column:11;"><div><div class="band green"></div><div class="cell-title">Ремнабор</div></div><div class="cell-price">100</div></div>
+          <div class="cell board-cell" data-index="13" style="grid-row:8;grid-column:11;"><div><div class="band purple"></div><div class="cell-title">Плацкарт</div></div><div class="cell-price">150</div></div>
+          <div class="cell board-cell" data-index="14" style="grid-row:7;grid-column:11;"><div><div class="band red"></div><div class="cell-title">Пыль дорог</div></div><div class="cell-price">170</div></div>
+          <div class="cell board-cell" data-index="15" style="grid-row:6;grid-column:11;"><div><div class="band gray"></div><div class="cell-title">Шанс</div></div><div class="cell-price">тянуть</div></div>
+          <div class="cell board-cell" data-index="16" style="grid-row:5;grid-column:11;"><div><div class="band blue"></div><div class="cell-title">Грэвел</div></div><div class="cell-price">180</div></div>
+          <div class="cell board-cell" data-index="17" style="grid-row:4;grid-column:11;"><div><div class="band red"></div><div class="cell-title">Эверестинг</div></div><div class="cell-price">налог 120</div></div>
+          <div class="cell board-cell" data-index="18" style="grid-row:3;grid-column:11;"><div><div class="band green"></div><div class="cell-title">Термы</div></div><div class="cell-price">+100</div></div>
+          <div class="cell board-cell" data-index="19" style="grid-row:2;grid-column:11;"><div><div class="band purple"></div><div class="cell-title">Костер</div></div><div class="cell-price">110</div></div>
 
-          <div class="cell" style="grid-row:1;grid-column:10;"><div><div class="band blue"></div><div class="cell-title">День Потаскумбрии</div></div><div class="cell-price">главный праздник</div></div>
-          <div class="cell" style="grid-row:1;grid-column:9;"><div><div class="band blue"></div><div class="cell-title">Ски-тур</div></div><div class="cell-price">зимняя классика</div></div>
-          <div class="cell" style="grid-row:1;grid-column:8;"><div><div class="band green"></div><div class="cell-title">Каток</div></div><div class="cell-price">побочный квест</div></div>
-          <div class="cell" style="grid-row:1;grid-column:7;"><div><div class="band red"></div><div class="cell-title">Горный бонус</div></div><div class="cell-price">+20 к легенде</div></div>
-          <div class="cell" style="grid-row:1;grid-column:6;"><div><div class="band gray"></div><div class="cell-title">Шанс</div></div><div class="cell-price">там лайт</div></div>
-          <div class="cell" style="grid-row:1;grid-column:5;"><div><div class="band orange"></div><div class="cell-title">Кэмп</div></div><div class="cell-price">вписаться</div></div>
-          <div class="cell" style="grid-row:1;grid-column:4;"><div><div class="band green"></div><div class="cell-title">GPX</div></div><div class="cell-price">магический свиток</div></div>
-          <div class="cell" style="grid-row:1;grid-column:3;"><div><div class="band purple"></div><div class="cell-title">Станция</div></div><div class="cell-price">путь домой</div></div>
-          <div class="cell" style="grid-row:1;grid-column:2;"><div><div class="band red"></div><div class="cell-title">Горы</div></div><div class="cell-price">выше только кризис</div></div>
+          <div class="cell board-cell" data-index="21" style="grid-row:1;grid-column:10;"><div><div class="band blue"></div><div class="cell-title">День Потаскумбрии</div></div><div class="cell-price">210</div></div>
+          <div class="cell board-cell" data-index="22" style="grid-row:1;grid-column:9;"><div><div class="band blue"></div><div class="cell-title">Ски-тур</div></div><div class="cell-price">160</div></div>
+          <div class="cell board-cell" data-index="23" style="grid-row:1;grid-column:8;"><div><div class="band green"></div><div class="cell-title">Каток</div></div><div class="cell-price">130</div></div>
+          <div class="cell board-cell" data-index="24" style="grid-row:1;grid-column:7;"><div><div class="band red"></div><div class="cell-title">Горный бонус</div></div><div class="cell-price">+150</div></div>
+          <div class="cell board-cell" data-index="25" style="grid-row:1;grid-column:6;"><div><div class="band gray"></div><div class="cell-title">Шанс</div></div><div class="cell-price">тянуть</div></div>
+          <div class="cell board-cell" data-index="26" style="grid-row:1;grid-column:5;"><div><div class="band orange"></div><div class="cell-title">Кэмп</div></div><div class="cell-price">190</div></div>
+          <div class="cell board-cell" data-index="27" style="grid-row:1;grid-column:4;"><div><div class="band green"></div><div class="cell-title">GPX</div></div><div class="cell-price">80</div></div>
+          <div class="cell board-cell" data-index="28" style="grid-row:1;grid-column:3;"><div><div class="band purple"></div><div class="cell-title">Станция</div></div><div class="cell-price">+60</div></div>
+          <div class="cell board-cell" data-index="29" style="grid-row:1;grid-column:2;"><div><div class="band red"></div><div class="cell-title">Горы</div></div><div class="cell-price">280</div></div>
 
-          <div class="cell" style="grid-row:2;grid-column:1;"><div><div class="band green"></div><div class="cell-title">Насос</div></div><div class="cell-price">держит мир</div></div>
-          <div class="cell" style="grid-row:3;grid-column:1;"><div><div class="band gray"></div><div class="cell-title">Дождь</div></div><div class="cell-price">без доплаты</div></div>
-          <div class="cell" style="grid-row:4;grid-column:1;"><div><div class="band purple"></div><div class="cell-title">Мост</div></div><div class="cell-price">скользко и честно</div></div>
-          <div class="cell" style="grid-row:5;grid-column:1;"><div><div class="band red"></div><div class="cell-title">Встречный ветер</div></div><div class="cell-price">проверка характера</div></div>
-          <div class="cell" style="grid-row:6;grid-column:1;"><div><div class="band blue"></div><div class="cell-title">Асфальт</div></div><div class="cell-price">обманчивый уют</div></div>
-          <div class="cell" style="grid-row:7;grid-column:1;"><div><div class="band green"></div><div class="cell-title">Грязь</div></div><div class="cell-price">посвящение</div></div>
-          <div class="cell" style="grid-row:8;grid-column:1;"><div><div class="band purple"></div><div class="cell-title">Сон после</div></div><div class="cell-price">наградной режим</div></div>
-          <div class="cell" style="grid-row:9;grid-column:1;"><div><div class="band blue"></div><div class="cell-title">Скумбрия</div></div><div class="cell-price">тотем и пища</div></div>
-          <div class="cell" style="grid-row:10;grid-column:1;"><div><div class="band orange"></div><div class="cell-title">Легенда</div></div><div class="cell-price">рассказывать месяц</div></div>
+          <div class="cell board-cell" data-index="31" style="grid-row:2;grid-column:1;"><div><div class="band green"></div><div class="cell-title">Насос</div></div><div class="cell-price">95</div></div>
+          <div class="cell board-cell" data-index="32" style="grid-row:3;grid-column:1;"><div><div class="band gray"></div><div class="cell-title">Дождь</div></div><div class="cell-price">налог 70</div></div>
+          <div class="cell board-cell" data-index="33" style="grid-row:4;grid-column:1;"><div><div class="band purple"></div><div class="cell-title">Мост</div></div><div class="cell-price">115</div></div>
+          <div class="cell board-cell" data-index="34" style="grid-row:5;grid-column:1;"><div><div class="band red"></div><div class="cell-title">Встречный ветер</div></div><div class="cell-price">налог 90</div></div>
+          <div class="cell board-cell" data-index="35" style="grid-row:6;grid-column:1;"><div><div class="band blue"></div><div class="cell-title">Асфальт</div></div><div class="cell-price">150</div></div>
+          <div class="cell board-cell" data-index="36" style="grid-row:7;grid-column:1;"><div><div class="band green"></div><div class="cell-title">Грязь</div></div><div class="cell-price">170</div></div>
+          <div class="cell board-cell" data-index="37" style="grid-row:8;grid-column:1;"><div><div class="band purple"></div><div class="cell-title">Сон после</div></div><div class="cell-price">+50</div></div>
+          <div class="cell board-cell" data-index="38" style="grid-row:9;grid-column:1;"><div><div class="band blue"></div><div class="cell-title">Скумбрия</div></div><div class="cell-price">130</div></div>
+          <div class="cell board-cell" data-index="39" style="grid-row:10;grid-column:1;"><div><div class="band orange"></div><div class="cell-title">Легенда</div></div><div class="cell-price">300</div></div>
 
           <div class="center-zone">
             <div class="logo">
               <div class="logo-big">СКУМБРОПОЛИЯ</div>
               <div class="logo-small">покупай не улицы, а поводы ехать дальше</div>
             </div>
-            <div class="stash">
-              <div class="stash-title">Карточка дня</div>
-              <div class="stash-text">
-                Ты вытащил карту "Там всего 60 км". Поверил. Потерял 1 батончик, 2 часа жизни и приобрел уважение стаи.
+            <div class="details-box" id="detailsBox">
+              <div class="details-title">Подвалье</div>
+              <div class="details-text">Классическая недвижимость для тех, кто хочет красоты, дороги и легкой жести. Стоит терпимо, но уважение приносит серьезное.</div>
+              <div class="details-badge">свежий актив</div>
+              <div class="details-actions">
+                <button class="action-btn" id="buyBtn" type="button">купить</button>
               </div>
             </div>
+            <div class="fish-token" id="fishToken"></div>
           </div>
-        </div>
-
-        <div class="board-footnote">
-          Если захочешь, в следующей версии сюда можно добавить кликабельные клетки, карточки "Шанс", анимированную фишку-скумбрию и полноценные правила настольной жизни.
         </div>
       </section>
     </div>
   </div>
 
+  <div class="chance-overlay" id="chanceOverlay">
+    <div class="chance-card">
+      <h2>Шанс</h2>
+      <p id="chanceText"></p>
+      <div class="chance-actions">
+        <button class="action-btn" id="closeChanceBtn" type="button">принять судьбу</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     const themeBtn = document.getElementById('themeBtn');
+    const board = document.getElementById('board');
+    const boardCells = [...document.querySelectorAll('.board-cell')];
+    const detailsBox = document.getElementById('detailsBox');
+    const buyBtn = document.getElementById('buyBtn');
+    const rollBtn = document.getElementById('rollBtn');
+    const chanceBtn = document.getElementById('chanceBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const playerPosition = document.getElementById('playerPosition');
+    const playerCoins = document.getElementById('playerCoins');
+    const playerLaps = document.getElementById('playerLaps');
+    const playerOwned = document.getElementById('playerOwned');
+    const fishToken = document.getElementById('fishToken');
+    const chanceOverlay = document.getElementById('chanceOverlay');
+    const chanceText = document.getElementById('chanceText');
+    const closeChanceBtn = document.getElementById('closeChanceBtn');
+
+    const cells = {
+      0: { name: 'Старт / Самара', type: 'start', text: 'Отсюда все и начинается. Пересек старт — получи 200 копчекоинов за веру в маршрут.' },
+      1: { name: 'Подвалье', type: 'property', price: 120, rent: 24, badge: 'свежий актив', text: 'Классическая недвижимость для тех, кто хочет красоты, дороги и легкой жести.' },
+      2: { name: 'СыСа', type: 'property', price: 140, rent: 28, badge: 'трасса с именем', text: 'Клетка с характером. Покупают те, кто любит и маршрут, и загадочное название.' },
+      3: { name: 'Шанс', type: 'chance', text: 'Тяни карту и смотри, что жизнь приготовила на этот раз.' },
+      4: { name: 'Башкирия', type: 'property', price: 220, rent: 44, badge: 'плацкарт deluxe', text: 'Пыль, хостел, гордость. Актив для серьезной скумбрийной души.' },
+      5: { name: 'Остановка пожрать', type: 'bonus', value: 75, text: 'Редкая добрая клетка. Просто поешь и воспрянь.' },
+      6: { name: 'Минводы', type: 'property', price: 260, rent: 52, badge: 'летнее копчение', text: 'Солидная южная позиция для тех, кто любит большие планы.' },
+      7: { name: 'Кофе из Пятерки', type: 'property', price: 90, rent: 18, badge: 'сомнительная сила', text: 'Актив с риском для психики, но с высоким культурным значением.' },
+      8: { name: 'Узбекистан', type: 'property', price: 320, rent: 64, badge: 'большой выезд', text: 'Международная скумбрийная недвижимость повышенной амбициозности.' },
+      9: { name: 'Киргизия', type: 'property', price: 360, rent: 72, badge: 'горы и жизнь', text: 'Высокогорный актив для тех, кто плохо переносит скуку.' },
+      10: { name: 'Выброска на эльке', type: 'jail', text: 'Тут можно перевести дух. Формально это не тюрьма, а транспортная коррекция планов.' },
+      11: { name: 'Хостел', type: 'tax', value: 80, text: 'Заплати за интеллигентную скученность и ночь среди своих и не очень.' },
+      12: { name: 'Ремнабор', type: 'property', price: 100, rent: 20, badge: 'цивилизация', text: 'Один из важнейших активов на рынке здравого смысла.' },
+      13: { name: 'Плацкарт', type: 'property', price: 150, rent: 30, badge: 'аристократия', text: 'Люкс без пафоса. Клетка силы и запаха лапши.' },
+      14: { name: 'Пыль дорог', type: 'property', price: 170, rent: 34, badge: 'натуральный скраб', text: 'Без нее любая поездка выглядит подозрительно приличной.' },
+      15: { name: 'Шанс', type: 'chance', text: 'Опять шанс. В этой жизни он повторяется подозрительно часто.' },
+      16: { name: 'Грэвел', type: 'property', price: 180, rent: 36, badge: 'честная поверхность', text: 'Актив, на котором умирают понты и рождается правда.' },
+      17: { name: 'Эверестинг', type: 'tax', value: 120, text: 'Психологический ущерб. Заплати и подумай, зачем тебе это вообще.' },
+      18: { name: 'Термы', type: 'bonus', value: 100, text: 'Тепло, пар и временное ощущение, что жизнь наладилась.' },
+      19: { name: 'Костер', type: 'property', price: 110, rent: 22, badge: 'байки и дым', text: 'Тут конвертируют усталость в клубную мифологию.' },
+      20: { name: 'Горное копчение', type: 'free', text: 'Просто постой и подумай, как ты сюда вообще доехал.' },
+      21: { name: 'День Потаскумбрии', type: 'property', price: 210, rent: 42, badge: 'главный праздник', text: 'Тут празднуют рыбу, движение и правильную степень всратости.' },
+      22: { name: 'Ски-тур', type: 'property', price: 160, rent: 32, badge: 'зимняя классика', text: 'Покупают те, кому мало одной формы страдания.' },
+      23: { name: 'Каток', type: 'property', price: 130, rent: 26, badge: 'побочный квест', text: 'Небольшой, но атмосферный актив для межсезонья.' },
+      24: { name: 'Горный бонус', type: 'bonus', value: 150, text: 'Редкая удача: красиво пострадал и даже что-то с этого получил.' },
+      25: { name: 'Шанс', type: 'chance', text: 'Тяни карту. Судьба опять решила поучаствовать.' },
+      26: { name: 'Кэмп', type: 'property', price: 190, rent: 38, badge: 'вписаться', text: 'Актив для тех, кто ценит выезды с бытом, дымом и странными решениями.' },
+      27: { name: 'GPX', type: 'property', price: 80, rent: 16, badge: 'магический свиток', text: 'Скромная, но могущественная вещь. Без нее быстро начинается фольклор.' },
+      28: { name: 'Станция', type: 'bonus', value: 60, text: 'Получаешь бонус за грамотную логистику и своевременное смирение.' },
+      29: { name: 'Горы', type: 'property', price: 280, rent: 56, badge: 'выше только кризис', text: 'Большой красивый актив. Дорогой, тяжелый, но очень уважаемый.' },
+      30: { name: 'Скумбрия бесплатно', type: 'free', text: 'Сидишь на рыбе, восстанавливаешь мораль и вспоминаешь, зачем все это.' },
+      31: { name: 'Насос', type: 'property', price: 95, rent: 19, badge: 'держит мир', text: 'Одна из опор цивилизации и скумбрийной устойчивости.' },
+      32: { name: 'Дождь', type: 'tax', value: 70, text: 'Заплати за мокрую разметку, холодные ладони и дополнительную серьезность.' },
+      33: { name: 'Мост', type: 'property', price: 115, rent: 23, badge: 'скользко и честно', text: 'Небольшой актив, который учит уважать поверхность.' },
+      34: { name: 'Встречный ветер', type: 'tax', value: 90, text: 'Налог на характер. Просто отдай деньги и не возмущайся.' },
+      35: { name: 'Асфальт', type: 'property', price: 150, rent: 30, badge: 'обманчивый уют', text: 'Вроде бы спокойно, но потом все равно станет сложно.' },
+      36: { name: 'Грязь', type: 'property', price: 170, rent: 34, badge: 'посвящение', text: 'Берут не ради комфорта, а ради честности происходящего.' },
+      37: { name: 'Сон после', type: 'bonus', value: 50, text: 'Маленькая награда за то, что ты вообще вывез этот день.' },
+      38: { name: 'Скумбрия', type: 'property', price: 130, rent: 26, badge: 'тотем и пища', text: 'Символический актив с сильным культурным фундаментом.' },
+      39: { name: 'Легенда', type: 'property', price: 300, rent: 60, badge: 'рассказывать месяц', text: 'Большой дорогой актив. Приносит уважение и нескончаемые пересказы.' }
+    };
+
+    const chanceCards = [
+      { text: 'Ты поверил в фразу "там лайт". Потеряй 70 копчекоинов за наивность.', coins: -70 },
+      { text: 'На остановке тебе перепал лишний батончик. Получи 60 копчекоинов.', coins: 60 },
+      { text: 'Ты нашел магазин раньше всех. Получи 90 копчекоинов и одобрение стаи.', coins: 90 },
+      { text: 'Пробил колесо в самый красивый момент. Заплати 50 копчекоинов за материал для будущих баек.', coins: -50 },
+      { text: 'Ветер внезапно стал попутным. Продвинься на 3 клетки вперед.', move: 3 },
+      { text: 'Твоя мораль просела. Отправляйся на выброску на эльке.', goTo: 10 },
+      { text: 'Ты так хорошо всех ждал, что заслужил 80 копчекоинов уважения.', coins: 80 },
+      { text: 'Случайный человек угостил тебя кофе. Получи 40 копчекоинов и теплое чувство.', coins: 40 },
+      { text: 'Ты решил геройствовать без еды. Потеряй 60 копчекоинов и немного лица.', coins: -60 },
+      { text: 'Тебя накрыло вдохновением. Перейди сразу на Башкирию.', goTo: 4 }
+    ];
+
+    const state = {
+      position: 0,
+      coins: 1500,
+      laps: 0,
+      owned: new Set(),
+      activeCell: 1
+    };
 
     function setThemeIcon() {
       themeBtn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
@@ -417,8 +674,206 @@
     if (localStorage.getItem('theme') === 'dark') {
       document.body.classList.add('dark');
     }
-
     setThemeIcon();
+
+    function updateStats() {
+      playerPosition.textContent = cells[state.position].name;
+      playerCoins.textContent = state.coins;
+      playerLaps.textContent = state.laps;
+      playerOwned.textContent = state.owned.size;
+    }
+
+    function updateOwnedVisuals() {
+      boardCells.forEach(cell => {
+        const idx = Number(cell.dataset.index);
+        cell.classList.toggle('owned', state.owned.has(idx));
+      });
+    }
+
+    function setActiveCell(index) {
+      state.activeCell = index;
+      boardCells.forEach(cell => cell.classList.toggle('active', Number(cell.dataset.index) === index));
+      const cell = cells[index];
+      let badge = '';
+      if (cell.type === 'property') {
+        badge = cell.badge || 'актив';
+      } else if (cell.type === 'chance') {
+        badge = 'тяни судьбу';
+      } else if (cell.type === 'bonus') {
+        badge = 'приятный бонус';
+      } else if (cell.type === 'tax') {
+        badge = 'налог на жизнь';
+      } else if (cell.type === 'jail') {
+        badge = 'временная коррекция';
+      } else {
+        badge = 'особая клетка';
+      }
+
+      detailsBox.innerHTML = `
+        <div class="details-title">${cell.name}</div>
+        <div class="details-text">${cell.text}</div>
+        <div class="details-badge">${badge}</div>
+        <div class="details-actions">
+          ${cell.type === 'property' ? '<button class="action-btn" id="buyBtnInner" type="button">купить</button>' : ''}
+          ${cell.type === 'chance' ? '<button class="action-btn" id="chanceBtnInner" type="button">тянуть шанс</button>' : ''}
+        </div>
+      `;
+
+      const buyBtnInner = document.getElementById('buyBtnInner');
+      if (buyBtnInner) buyBtnInner.addEventListener('click', buyCurrentCell);
+      const chanceBtnInner = document.getElementById('chanceBtnInner');
+      if (chanceBtnInner) chanceBtnInner.addEventListener('click', drawChance);
+    }
+
+    function moveFishTo(index) {
+      const cellEl = board.querySelector(`.board-cell[data-index="${index}"]`);
+      if (!cellEl) return;
+      const boardRect = board.getBoundingClientRect();
+      const rect = cellEl.getBoundingClientRect();
+      const left = rect.left - boardRect.left + rect.width / 2 - fishToken.offsetWidth / 2;
+      const top = rect.top - boardRect.top + rect.height / 2 - fishToken.offsetHeight / 2;
+      fishToken.style.left = `${left}px`;
+      fishToken.style.top = `${top}px`;
+      fishToken.style.transform = `rotate(${index * 9}deg)`;
+    }
+
+    function gainStartBonus() {
+      state.coins += 200;
+      state.laps += 1;
+    }
+
+    function applyCellEffect(index) {
+      const cell = cells[index];
+      if (!cell) return;
+      if (cell.type === 'bonus') {
+        state.coins += cell.value || 0;
+      }
+      if (cell.type === 'tax') {
+        state.coins -= cell.value || 0;
+      }
+      if (cell.type === 'chance') {
+        drawChance();
+      }
+      if (state.coins < 0) state.coins = 0;
+    }
+
+    function movePlayer(steps) {
+      const old = state.position;
+      let next = (state.position + steps) % 40;
+      if (state.position + steps >= 40) {
+        gainStartBonus();
+      }
+      state.position = next;
+      moveFishTo(next);
+      setActiveCell(next);
+      updateStats();
+      if (old !== next) {
+        setTimeout(() => {
+          applyCellEffect(next);
+          updateStats();
+        }, 360);
+      }
+    }
+
+    function goToCell(index, collectStart = false) {
+      if (collectStart && index < state.position) {
+        gainStartBonus();
+      }
+      state.position = index;
+      moveFishTo(index);
+      setActiveCell(index);
+      updateStats();
+      setTimeout(() => {
+        applyCellEffect(index);
+        updateStats();
+      }, 360);
+    }
+
+    function buyCurrentCell() {
+      const idx = state.activeCell;
+      const cell = cells[idx];
+      if (!cell || cell.type !== 'property') return;
+      if (state.owned.has(idx)) {
+        alert('Эта скумбрийная собственность уже твоя.');
+        return;
+      }
+      if (state.coins < cell.price) {
+        alert('Не хватает копчекоинов. Сначала поживи, потом инвестируй.');
+        return;
+      }
+      state.coins -= cell.price;
+      state.owned.add(idx);
+      updateStats();
+      updateOwnedVisuals();
+      setActiveCell(idx);
+    }
+
+    function drawChance() {
+      const card = chanceCards[Math.floor(Math.random() * chanceCards.length)];
+      chanceText.textContent = card.text;
+      chanceOverlay.classList.add('open');
+      chanceOverlay.dataset.card = JSON.stringify(card);
+    }
+
+    function closeChanceAndApply() {
+      const card = JSON.parse(chanceOverlay.dataset.card || '{}');
+      chanceOverlay.classList.remove('open');
+      if (typeof card.coins === 'number') {
+        state.coins += card.coins;
+      }
+      if (typeof card.move === 'number') {
+        movePlayer(card.move);
+        return;
+      }
+      if (typeof card.goTo === 'number') {
+        goToCell(card.goTo, card.goTo < state.position);
+        return;
+      }
+      if (state.coins < 0) state.coins = 0;
+      updateStats();
+      setActiveCell(state.position);
+    }
+
+    function rollDice() {
+      const dice = Math.floor(Math.random() * 6) + 1;
+      movePlayer(dice);
+    }
+
+    function resetGame() {
+      state.position = 0;
+      state.coins = 1500;
+      state.laps = 0;
+      state.owned = new Set();
+      state.activeCell = 1;
+      updateStats();
+      updateOwnedVisuals();
+      moveFishTo(0);
+      setActiveCell(1);
+      chanceOverlay.classList.remove('open');
+    }
+
+    boardCells.forEach(cell => {
+      cell.addEventListener('click', () => {
+        const idx = Number(cell.dataset.index);
+        setActiveCell(idx);
+      });
+    });
+
+    rollBtn.addEventListener('click', rollDice);
+    chanceBtn.addEventListener('click', drawChance);
+    resetBtn.addEventListener('click', resetGame);
+    closeChanceBtn.addEventListener('click', closeChanceAndApply);
+    buyBtn.addEventListener('click', buyCurrentCell);
+    chanceOverlay.addEventListener('click', (e) => {
+      if (e.target === chanceOverlay) closeChanceAndApply();
+    });
+
+    window.addEventListener('resize', () => moveFishTo(state.position));
+
+    updateStats();
+    updateOwnedVisuals();
+    setActiveCell(1);
+    requestAnimationFrame(() => moveFishTo(0));
   </script>
 </body>
 </html>
