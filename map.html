@@ -1,465 +1,59 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Карта путешествий Потаскумбрии</title>
-  <link rel="icon" href="favicon.png" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
-      color: #222;
-    }
-    body.dark {
-      background: #0d1117;
-      color: #c9d1d9;
-    }
-    .page {
-      max-width: 1180px;
-      margin: 0 auto;
-      padding: 16px;
-    }
-    .topbar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 14px;
-    }
-    .title {
-      font-size: 30px;
-      font-weight: 700;
-      margin: 0;
-    }
-    .sub {
-      margin-top: 6px;
-      opacity: 0.8;
-    }
-    .top-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .btn, .theme-btn, .filter-btn {
-      font: inherit;
-      color: inherit;
-      background: transparent;
-      border: 1px solid rgba(120,120,120,0.55);
-      border-radius: 10px;
-      padding: 8px 12px;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-    .btn:hover, .theme-btn:hover, .filter-btn:hover {
-      background: rgba(255,255,255,0.06);
-    }
-    .layout {
-      display: grid;
-      grid-template-columns: 320px 1fr;
-      gap: 14px;
-    }
-    .sidebar, .map-wrap {
-      background: rgba(255,255,255,0.45);
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(120,120,120,0.18);
-    }
-    body.dark .sidebar,
-    body.dark .map-wrap {
-      background: rgba(255,255,255,0.04);
-      border-color: rgba(255,255,255,0.08);
-    }
-    .sidebar-inner {
-      padding: 14px;
-    }
-    .filters {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 12px;
-    }
-    .filter-btn.active {
-      background: rgba(0,102,204,0.15);
-      border-color: rgba(0,102,204,0.6);
-    }
-    body.dark .filter-btn.active {
-      background: rgba(88,166,255,0.15);
-      border-color: rgba(88,166,255,0.65);
-    }
-    .legend {
-      font-size: 14px;
-      opacity: 0.9;
-      margin-bottom: 14px;
-      line-height: 1.45;
-    }
-    .trip-list {
-      display: grid;
-      gap: 10px;
-      max-height: 640px;
-      overflow: auto;
-      padding-right: 4px;
-    }
-    .trip-card {
-      border: 1px solid rgba(120,120,120,0.2);
-      border-radius: 12px;
-      padding: 10px;
-      cursor: pointer;
-      transition: transform 0.15s ease, background 0.15s ease;
-    }
-    .trip-card:hover {
-      transform: translateY(-1px);
-      background: rgba(255,255,255,0.16);
-    }
-    body.dark .trip-card:hover {
-      background: rgba(255,255,255,0.05);
-    }
-    .trip-card.active {
-      border-color: rgba(0,102,204,0.6);
-      background: rgba(0,102,204,0.1);
-    }
-    body.dark .trip-card.active {
-      border-color: rgba(88,166,255,0.7);
-      background: rgba(88,166,255,0.12);
-    }
-    .trip-title {
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-    .trip-meta {
-      font-size: 13px;
-      opacity: 0.75;
-      margin-bottom: 6px;
-    }
-    .trip-text {
-      font-size: 14px;
-      line-height: 1.35;
-    }
-    #map {
-      width: 100%;
-      height: 760px;
-      background: #dfe9f3;
-    }
-    .leaflet-popup-content {
-      font-family: Arial, sans-serif;
-      line-height: 1.4;
-    }
-    .popup-title {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-    .popup-meta {
-      font-size: 13px;
-      opacity: 0.7;
-      margin-bottom: 8px;
-    }
-    .popup-text {
-      font-size: 14px;
-    }
-    .badge {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 999px;
-      font-size: 12px;
-      margin-top: 8px;
-      border: 1px solid rgba(120,120,120,0.3);
-    }
-    .footnote {
-      margin-top: 10px;
-      font-size: 13px;
-      opacity: 0.72;
-      line-height: 1.4;
-    }
-    @media (max-width: 980px) {
-      .layout {
-        grid-template-columns: 1fr;
-      }
-      #map {
-        height: 540px;
-      }
-      .trip-list {
-        max-height: none;
-      }
-    }
-  </style>
-</head>
-<body>
-  <div class="page">
-    <div class="topbar">
-      <div>
-        <h1 class="title">Карта путешествий Потаскумбрии</h1>
-        <div class="sub">Скумбрийная география, былые подвиги и будущие авантюры</div>
-      </div>
-      <div class="top-actions">
-        <a class="btn" href="index.html">назад</a>
-        <button class="theme-btn" id="themeBtn" type="button">🌙</button>
-      </div>
-    </div>
+<div id="map" style="width:100%; height:760px;"></div>
 
-    <div class="layout">
-      <aside class="sidebar">
-        <div class="sidebar-inner">
-          <div class="filters">
-            <button class="filter-btn active" data-filter="all" type="button">всё</button>
-            <button class="filter-btn" data-filter="past" type="button">было</button>
-            <button class="filter-btn" data-filter="future" type="button">будет</button>
-          </div>
+<script>
+  const trips = [
+    {
+      id: "samara",
+      title: "Самара",
+      type: "past",
+      coords: [53.1959, 50.1008],
+      date: "База",
+      text: "Отсюда скумбрийная стая чаще всего и выдвигается."
+    },
+    {
+      id: "bashkiria",
+      title: "Башкирия",
+      type: "future",
+      coords: [54.7348, 55.9578],
+      date: "8–12 мая",
+      text: "Плацкарт, хостел, пыль дорог и кофе из Пятерки."
+    }
+  ];
 
-          <div class="legend">
-            <b>● Синее</b> — уже катались<br>
-            <b>● Оранжевое</b> — впереди копчение<br>
-            Нажми на карточку или точку на карте
-          </div>
+  let map;
+  const placemarks = {};
 
-          <div class="trip-list" id="tripList"></div>
+  ymaps.ready(init);
 
-          <div class="footnote">
-            Пока тут стоят примерные точки и демо-маршруты. Потом можно добавить реальные GPX, линии маршрутов, фотки и сделать вообще карту сокровищ с призами за посещение мест.
-          </div>
-        </div>
-      </aside>
-
-      <section class="map-wrap">
-        <div id="map"></div>
-      </section>
-    </div>
-  </div>
-
-  <script>
-    const trips = [
-      {
-        id: "samara",
-        title: "Самара",
-        type: "past",
-        coords: [53.1959, 50.1008],
-        date: "База",
-        text: "Отсюда скумбрийная стая чаще всего и выдвигается. Дом родной, стартовая точка, место, где все еще выглядит как хорошая идея.",
-        badge: "основная база"
-      },
-      {
-        id: "podvale",
-        title: "Подвалье",
-        type: "past",
-        coords: [53.678, 48.909],
-        date: "Было",
-        text: "Классика для тех, кто хочет красоты, дороги, легкой жести и потом сидеть с довольной рожей. Место скумбрийной памяти.",
-        badge: "вечная классика"
-      },
-      {
-        id: "bashkiria",
-        title: "Башкирия",
-        type: "future",
-        coords: [54.7348, 55.9578],
-        date: "8–12 мая",
-        text: "Плацкарт, хостел, пыль дорог и кофе из Пятерки под видом люксового ретрита. Предстоящее копчение повышенной культурной ценности.",
-        badge: "скоро жесть"
-      },
-      {
-        id: "krym",
-        title: "Крым",
-        type: "past",
-        coords: [44.9521, 34.1024],
-        date: "Было",
-        text: "Южный этап скумбрийной одиссеи. Подъемы, солнце, море, горы и постоянное ощущение, что ты либо герой, либо слегка переоценил себя.",
-        badge: "южное копчение"
-      },
-      {
-        id: "minvody",
-        title: "Минеральные Воды",
-        type: "future",
-        coords: [44.2087, 43.1383],
-        date: "Июнь",
-        text: "Пока в планах. Выглядит как место, где будет красиво, жарко и в какой-то момент кто-нибудь обязательно скажет, что это была плохая идея, но с довольной улыбкой.",
-        badge: "будущая добыча"
-      },
-      {
-        id: "uzbekistan",
-        title: "Узбекистан",
-        type: "future",
-        coords: [41.2995, 69.2401],
-        date: "В планах",
-        text: "Большой выезд, серьезный аппетит, новые дороги и шанс поднять скумбрийный уровень международности.",
-        badge: "далекий выезд"
-      },
-      {
-        id: "kyrgyzstan",
-        title: "Киргизия",
-        type: "future",
-        coords: [42.8746, 74.5698],
-        date: "В планах",
-        text: "Горный соблазн, от которого трудно отказаться. Место, где можно красиво пострадать и потом рассказывать об этом как о высшей форме отдыха.",
-        badge: "горы ждут"
-      }
-    ];
-
-    const tripList = document.getElementById('tripList');
-    const filterButtons = document.querySelectorAll('.filter-btn');
-    const themeBtn = document.getElementById('themeBtn');
-
-    let activeFilter = 'all';
-    let activeTripId = null;
-
-    const map = L.map('map', {
-      zoomControl: true,
-      scrollWheelZoom: true
-    }).setView([53.5, 55.0], 4);
-
-    const lightTiles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
+  function init() {
+    map = new ymaps.Map("map", {
+      center: [53.5, 55.0],
+      zoom: 5,
+      controls: ["zoomControl"]
     });
 
-    const darkTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+    trips.forEach(trip => {
+      const color = trip.type === "future" ? "orange" : "blue";
+
+      const placemark = new ymaps.Placemark(
+        trip.coords,
+        {
+          balloonContent: `
+            <b>${trip.title}</b><br>
+            ${trip.date}<br><br>
+            ${trip.text}
+          `,
+          hintContent: trip.title
+        },
+        {
+          preset: color === "orange"
+            ? "islands#orangeIcon"
+            : "islands#blueIcon"
+        }
+      );
+
+      map.geoObjects.add(placemark);
+      placemarks[trip.id] = placemark;
     });
-
-    function setThemeIcon() {
-      themeBtn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
-    }
-
-    function applyTiles() {
-      if (document.body.classList.contains('dark')) {
-        if (map.hasLayer(lightTiles)) map.removeLayer(lightTiles);
-        if (!map.hasLayer(darkTiles)) darkTiles.addTo(map);
-      } else {
-        if (map.hasLayer(darkTiles)) map.removeLayer(darkTiles);
-        if (!map.hasLayer(lightTiles)) lightTiles.addTo(map);
-      }
-    }
-
-    function toggleTheme() {
-      document.body.classList.toggle('dark');
-      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
-      setThemeIcon();
-      applyTiles();
-    }
-
-    themeBtn.addEventListener('click', toggleTheme);
-
-    if (localStorage.getItem('theme') === 'dark') {
-      document.body.classList.add('dark');
-    }
-    setThemeIcon();
-    applyTiles();
-
-    const markers = new Map();
-    const markerLayer = L.layerGroup().addTo(map);
-
-    function markerColor(type) {
-      return type === 'future' ? '#d98a1d' : '#1f78ff';
-    }
-
-    function markerHtml(trip) {
-      return `
-        <div style="
-          width: 18px;
-          height: 18px;
-          border-radius: 50%;
-          background: ${markerColor(trip.type)};
-          border: 3px solid rgba(255,255,255,0.95);
-          box-shadow: 0 0 0 2px rgba(0,0,0,0.18);
-        "></div>
-      `;
-    }
-
-    function popupHtml(trip) {
-      return `
-        <div class="popup-title">${trip.title}</div>
-        <div class="popup-meta">${trip.date}</div>
-        <div class="popup-text">${trip.text}</div>
-        <div class="badge">${trip.badge}</div>
-      `;
-    }
-
-    function visibleTrips() {
-      return trips.filter(trip => activeFilter === 'all' ? true : trip.type === activeFilter);
-    }
-
-    function renderMarkers() {
-      markerLayer.clearLayers();
-      markers.clear();
-
-      visibleTrips().forEach(trip => {
-        const icon = L.divIcon({
-          html: markerHtml(trip),
-          className: '',
-          iconSize: [24, 24],
-          iconAnchor: [12, 12],
-          popupAnchor: [0, -10]
-        });
-
-        const marker = L.marker(trip.coords, { icon }).addTo(markerLayer);
-        marker.bindPopup(popupHtml(trip));
-        marker.on('click', () => setActiveTrip(trip.id, true));
-        markers.set(trip.id, marker);
-      });
-    }
-
-    function renderList() {
-      tripList.innerHTML = '';
-      visibleTrips().forEach(trip => {
-        const card = document.createElement('div');
-        card.className = 'trip-card' + (trip.id === activeTripId ? ' active' : '');
-        card.dataset.id = trip.id;
-        card.innerHTML = `
-          <div class="trip-title">${trip.title}</div>
-          <div class="trip-meta">${trip.date}</div>
-          <div class="trip-text">${trip.text}</div>
-        `;
-        card.addEventListener('click', () => setActiveTrip(trip.id, true));
-        tripList.appendChild(card);
-      });
-    }
-
-    function fitVisibleTrips() {
-      const points = visibleTrips().map(t => t.coords);
-      if (!points.length) return;
-      if (points.length === 1) {
-        map.setView(points[0], 7);
-        return;
-      }
-      const bounds = L.latLngBounds(points);
-      map.fitBounds(bounds, { padding: [40, 40] });
-    }
-
-    function setActiveTrip(id, fly = false) {
-      activeTripId = id;
-      renderList();
-      const trip = trips.find(t => t.id === id);
-      const marker = markers.get(id);
-      if (!trip || !marker) return;
-
-      if (fly) {
-        map.flyTo(trip.coords, Math.max(map.getZoom(), 6), { duration: 0.7 });
-      }
-      marker.openPopup();
-    }
-
-    filterButtons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        activeFilter = btn.dataset.filter;
-        filterButtons.forEach(b => b.classList.toggle('active', b === btn));
-        activeTripId = null;
-        renderMarkers();
-        renderList();
-        fitVisibleTrips();
-      });
-    });
-
-    renderMarkers();
-    renderList();
-    fitVisibleTrips();
-    setActiveTrip('bashkiria');
-  </script>
-</body>
-</html>
+  }
+</script>
