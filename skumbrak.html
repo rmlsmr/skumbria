@@ -18,7 +18,7 @@
       color: #c9d1d9;
     }
     .page {
-      max-width: 620px;
+      max-width: 520px;
       margin: 0 auto;
       padding: 10px;
     }
@@ -37,15 +37,15 @@
     }
     .sub {
       margin-top: 4px;
-      opacity: 0.8;
+      opacity: 0.78;
       font-size: 13px;
       line-height: 1.3;
     }
-    .btn, .theme-btn, .action-btn {
+    .btn, .action-btn {
       font: inherit;
       color: inherit;
       background: transparent;
-      border: 1px solid rgba(120,120,120,0.55);
+      border: 1px solid rgba(120,120,120,0.45);
       border-radius: 12px;
       padding: 10px 12px;
       cursor: pointer;
@@ -95,16 +95,16 @@
       grid-template-columns: 1fr 1fr;
       gap: 8px;
     }
-    .grid3 {
+    .grid4 {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
+      grid-template-columns: 1fr 1fr;
       gap: 8px;
     }
     .status {
       margin-top: 8px;
       font-size: 13px;
       line-height: 1.35;
-      opacity: 0.84;
+      opacity: 0.82;
     }
     .stats {
       display: grid;
@@ -118,45 +118,41 @@
       font-size: 13px;
       line-height: 1.3;
     }
+    .table-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid rgba(120,120,120,0.18);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
     .table-zone {
       display: grid;
       gap: 10px;
     }
-    .trump-box {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      border: 1px solid rgba(120,120,120,0.18);
-      border-radius: 12px;
-      padding: 10px;
-    }
-    .deck-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 6px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(120,120,120,0.2);
-      font-size: 13px;
-    }
     .table-cards {
       display: grid;
-      grid-template-columns: 1fr 1fr;
       gap: 8px;
     }
     .pair {
       border: 1px solid rgba(120,120,120,0.18);
       border-radius: 12px;
       padding: 8px;
-      min-height: 104px;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
-      align-items: start;
     }
     .card {
-      border: 2px solid rgba(31,31,31,0.18);
+      border: 2px solid rgba(31,31,31,0.16);
       border-radius: 12px;
       background: #fffaf0;
       color: #1f1f1f;
@@ -165,7 +161,6 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      position: relative;
       user-select: none;
     }
     .card.red-suit { color: #c81d25; }
@@ -173,12 +168,10 @@
       background: rgba(255,255,255,0.08);
       color: inherit;
       border-style: dashed;
-      min-height: 92px;
       justify-content: center;
       align-items: center;
       opacity: 0.7;
     }
-    .card.small { min-height: 86px; }
     .card.selected {
       box-shadow: inset 0 0 0 3px rgba(0,102,204,0.35);
       transform: translateY(-2px);
@@ -251,7 +244,7 @@
     }
     .turn { background: rgba(0,102,204,0.12); }
     .me { background: rgba(27,163,74,0.12); }
-    .target { background: rgba(216,138,29,0.12); }
+    .def { background: rgba(216,138,29,0.12); }
     .overlay {
       position: fixed;
       inset: 0;
@@ -272,11 +265,10 @@
       padding: 18px;
       border: 3px solid #1f1f1f;
       box-shadow: 0 18px 50px rgba(0,0,0,0.35);
-      transform: rotate(-2deg);
     }
     .overlay-card h2 {
       margin: 0 0 10px 0;
-      font-size: 24px;
+      font-size: 22px;
     }
     .overlay-card p {
       margin: 0 0 14px 0;
@@ -287,7 +279,7 @@
       font-size: 12px;
       opacity: 0.72;
       line-height: 1.35;
-      margin-top: 8px;
+      margin-top: 6px;
     }
   </style>
 </head>
@@ -296,11 +288,11 @@
     <div class="topbar">
       <div>
         <h1 class="title">Скумбрак</h1>
-        <div class="sub">Мобильный многопользовательский дурак со скумбрийными картами и копчекоинами</div>
+        <div class="sub">Простой мобильный дурак онлайн на 2–3 игрока</div>
       </div>
       <div style="display:flex; gap:8px; align-items:center;">
         <a class="btn" href="index.html">назад</a>
-        <button class="theme-btn" id="themeBtn" type="button">🌙</button>
+        <button class="btn" id="themeBtn" type="button">🌙</button>
       </div>
     </div>
 
@@ -308,11 +300,11 @@
       <div class="panel-title">Вход</div>
       <input id="nickInput" class="input" type="text" maxlength="24" placeholder="ник скумбрии" />
       <div class="grid2" style="margin-top:8px;">
-        <button class="action-btn" id="createRoomBtn" type="button">создать комнату</button>
+        <button class="action-btn" id="createRoomBtn" type="button">создать</button>
         <button class="action-btn" id="joinRoomBtn" type="button">войти</button>
       </div>
       <input id="roomCodeInput" class="input" type="text" maxlength="6" placeholder="код комнаты" style="margin-top:8px;" />
-      <div class="status" id="statusText">Ник уникальный. Если копчекоины кончатся, под этим ником дальше не зайдешь.</div>
+      <div class="status" id="statusText">Под этим ником хранятся копчекоины. Если уйдешь в ноль, дальше не пустит.</div>
     </div>
 
     <div class="panel">
@@ -321,36 +313,35 @@
         <div class="stat">Копчекоины<br><b id="coinsLabel">—</b></div>
         <div class="stat">Фаза<br><b id="phaseLabel">—</b></div>
         <div class="stat">Ходит<br><b id="turnLabel">—</b></div>
-        <div class="stat">Защищается<br><b id="defenderLabel">—</b></div>
-        <div class="stat">Карт в колоде<br><b id="deckLabel">—</b></div>
+        <div class="stat">Защита<br><b id="defenderLabel">—</b></div>
+        <div class="stat">Колода<br><b id="deckLabel">—</b></div>
       </div>
     </div>
 
     <div class="panel table-zone">
-      <div class="trump-box">
+      <div class="table-head">
         <div>
           <div class="panel-title" style="margin:0 0 4px 0;">Стол</div>
-          <div class="status" id="roundInfo">Ждем, пока стая соберется.</div>
+          <div class="status" id="roundInfo">Ждем игроков.</div>
         </div>
-        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
-          <div class="deck-pill">козырь <b id="trumpLabel">—</b></div>
-          <div class="deck-pill">подменный <b id="swapLabel">—</b></div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+          <div class="pill">козырь <b id="trumpLabel">—</b></div>
+          <div class="pill">подменный <b id="swapLabel">—</b></div>
         </div>
       </div>
 
       <div class="table-cards" id="tableCards">
-        <div class="pair"><div class="card empty">пусто</div><div class="card empty">пусто</div></div>
+        <div class="pair"><div class="card empty">атака</div><div class="card empty">защита</div></div>
       </div>
 
-      <div class="grid3">
+      <div class="grid4">
         <button class="action-btn big" id="playBtn" type="button" disabled>сыграть</button>
         <button class="action-btn big" id="defendBtn" type="button" disabled>побить</button>
-        <button class="action-btn big" id="transferBtn" type="button" disabled>перевести</button>
         <button class="action-btn big" id="takeBtn" type="button" disabled>забрать</button>
         <button class="action-btn big" id="doneBtn" type="button" disabled>отбой</button>
-        <button class="action-btn big" id="swapBtn" type="button" disabled>подменить козырь</button>
       </div>
-      <div class="help">Подменный козырь: если у тебя есть 2 козыря, можешь обменять его на открытую козырную карту, пока колода не пустая.</div>
+      <div class="help">Подменный козырь работает только если у тебя есть 2 козыря и колода еще не пустая.</div>
+      <button class="action-btn big" id="swapBtn" type="button" disabled style="margin-top:8px; width:100%;">подменить козырь</button>
     </div>
 
     <div class="panel">
@@ -373,9 +364,7 @@
     <div class="overlay-card">
       <h2 id="overlayTitle">Сообщение</h2>
       <p id="overlayText"></p>
-      <div class="grid2">
-        <button class="action-btn" id="overlayOkBtn" type="button">понял</button>
-      </div>
+      <button class="action-btn" id="overlayOkBtn" type="button" style="width:100%;">понял</button>
     </div>
   </div>
 
@@ -400,7 +389,8 @@
     const ENTRY_COST = 1;
     const WIN_REWARD = 3;
     const LOSE_PENALTY = 2;
-    const PLAYER_COLORS = ['#d63b36', '#2f7df7', '#1ba34a', '#8d54d6', '#d98a1d'];
+    const MAX_PLAYERS = 3;
+    const PLAYER_COLORS = ['#d63b36', '#2f7df7', '#1ba34a'];
     const SUITS = ['♠', '♥', '♦', '♣'];
     const RED_SUITS = new Set(['♥', '♦']);
     const RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
@@ -427,7 +417,6 @@
     const logList = document.getElementById('logList');
     const playBtn = document.getElementById('playBtn');
     const defendBtn = document.getElementById('defendBtn');
-    const transferBtn = document.getElementById('transferBtn');
     const takeBtn = document.getElementById('takeBtn');
     const doneBtn = document.getElementById('doneBtn');
     const swapBtn = document.getElementById('swapBtn');
@@ -567,7 +556,7 @@
           deviceId,
           lastSeenAt: Date.now()
         });
-        return { name, nickKey: key, coins: 10, deviceId };
+        return { name, nickKey: key, coins: 10 };
       }
       const profile = snap.val();
       if ((profile.coins || 0) <= 0) {
@@ -653,7 +642,7 @@
         const room = snap.val();
         const players = room.players || {};
         const order = room.order || [];
-        if (!players[nick.key] && order.length >= 5) throw new Error('Комната уже полная.');
+        if (!players[nick.key] && order.length >= MAX_PLAYERS) throw new Error('Комната уже полная.');
         if (room.status === 'finished') throw new Error('Эта комната уже закончилась. Создай новую.');
         const updates = {};
         if (!players[nick.key]) {
@@ -744,27 +733,12 @@
       return game()?.defender || '';
     }
 
-    function isMyTurnToAttack() {
-      const me = getMeKey();
-      const g = game();
-      if (!g) return false;
-      if (g.phase !== 'attack' && g.phase !== 'throwin') return false;
-      return me !== g.defender && activeKeys(currentRoom).includes(me);
-    }
-
-    function isMyTurnToDefend() {
-      const me = getMeKey();
-      const g = game();
-      if (!g) return false;
-      return g.defender === me && (g.phase === 'defense' || g.phase === 'attack' || g.phase === 'throwin');
-    }
-
     function createGameFromRoom(room) {
       const order = room.order || [];
       const shuffled = shuffle(deck52());
       const hands = {};
       order.forEach(k => hands[k] = []);
-      for (let round = 0; round < 6; round++) {
+      for (let i = 0; i < 6; i++) {
         order.forEach(k => {
           if (shuffled.length) hands[k].push(shuffled.shift());
         });
@@ -783,7 +757,6 @@
         }
       });
       return {
-        startedAt: Date.now(),
         phase: 'attack',
         attacker,
         defender: nextActive({ ...room, game: { finished: {} } }, attacker),
@@ -801,35 +774,34 @@
 
     async function maybeAutoStart() {
       if (!currentRoom || currentRoom.status !== 'waiting') return;
-      const me = getMe();
-      const players = getPlayersOrdered();
-      if (!me || currentRoom.host !== getMeKey()) return;
-      if (players.length < 2) return;
+      if (currentRoom.host !== getMeKey()) return;
+      if (getPlayersOrdered().length < 2) return;
       await runTransaction(roomRef(roomCode), room => {
         if (!room || room.status !== 'waiting') return room;
-        const playersArr = (room.order || []).map(k => room.players?.[k]).filter(Boolean);
-        if (playersArr.length < 2) return room;
+        if ((room.order || []).length < 2) return room;
         room.status = 'playing';
         room.settled = false;
         room.game = createGameFromRoom(room);
         room.lastAction = 'Партия началась.';
         room.log = room.log || {};
         room.log[`${Date.now()}`] = 'Партия началась.';
-        playersArr.forEach(p => {
-          p.handCount = room.game.hands[p.nickKey].length;
-          p.finished = false;
+        (room.order || []).forEach(k => {
+          if (room.players[k]) {
+            room.players[k].handCount = room.game.hands[k].length;
+            room.players[k].finished = false;
+          }
         });
         return room;
       });
     }
 
     function allAttackRanks(table) {
-      const set = new Set();
+      const s = new Set();
       table.forEach(p => {
-        if (p.attack) set.add(parseCard(p.attack).rank);
-        if (p.defense) set.add(parseCard(p.defense).rank);
+        if (p.attack) s.add(parseCard(p.attack).rank);
+        if (p.defense) s.add(parseCard(p.defense).rank);
       });
-      return set;
+      return s;
     }
 
     function unresolvedPairs(table) {
@@ -837,36 +809,21 @@
     }
 
     function defenderCapacity(room) {
-      const g = room.game;
-      return (g.hands[g.defender] || []).length;
+      return (room.game.hands[room.game.defender] || []).length;
     }
 
     function canAttackWith(room, playerKey, card) {
       const g = room.game;
-      if (!g || !g.hands[playerKey]?.includes(card)) return false;
-      if (playerKey === g.defender) return false;
-      const capacity = defenderCapacity(room);
-      if ((g.table || []).length >= capacity) return false;
+      if (!g || playerKey === g.defender) return false;
+      if (!g.hands[playerKey]?.includes(card)) return false;
+      if (g.table.length >= defenderCapacity(room)) return false;
       if (g.table.length === 0) return playerKey === g.attacker;
       return allAttackRanks(g.table).has(parseCard(card).rank);
     }
 
-    function canTransferWith(room, playerKey, card) {
-      const g = room.game;
-      if (!g || playerKey !== g.defender) return false;
-      if (!g.hands[playerKey]?.includes(card)) return false;
-      if (!g.table.length) return false;
-      if (g.table.some(p => p.defense)) return false;
-      const firstRank = parseCard(g.table[0].attack).rank;
-      if (parseCard(card).rank !== firstRank) return false;
-      const nextDef = nextActive(room, g.defender);
-      if (nextDef === g.defender) return false;
-      return (g.hands[nextDef] || []).length >= g.table.length + 1;
-    }
-
     function canSwapTrump(room, playerKey) {
       const g = room.game;
-      if (!g || !g.deck?.length) return false;
+      if (!g || !g.deck.length) return false;
       return (g.hands[playerKey] || []).includes(cardCode('2', g.trumpSuit));
     }
 
@@ -909,13 +866,13 @@
       const meKey = getMeKey();
       await runTransaction(roomRef(roomCode), room => {
         if (!room || room.status !== 'playing') return room;
-        const g = room.game;
         if (!canAttackWith(room, meKey, selectedHandCard)) return room;
+        const g = room.game;
         g.hands[meKey] = g.hands[meKey].filter(c => c !== selectedHandCard);
         g.table.push({ attack: selectedHandCard, defense: null, by: meKey });
         g.phase = 'defense';
         room.players[meKey].handCount = g.hands[meKey].length;
-        room.lastAction = `${room.players[meKey].name} зашел картой ${selectedHandCard}.`;
+        room.lastAction = `${room.players[meKey].name} зашел ${selectedHandCard}.`;
         room.log[`${Date.now()}_${Math.random().toString(36).slice(2, 6)}`] = room.lastAction;
         return room;
       });
@@ -945,26 +902,6 @@
       selectedAttackIndex = null;
     }
 
-    async function transferSelected() {
-      if (!currentRoom || !selectedHandCard) return;
-      const meKey = getMeKey();
-      await runTransaction(roomRef(roomCode), room => {
-        if (!room || room.status !== 'playing') return room;
-        if (!canTransferWith(room, meKey, selectedHandCard)) return room;
-        const g = room.game;
-        g.hands[meKey] = g.hands[meKey].filter(c => c !== selectedHandCard);
-        g.table.push({ attack: selectedHandCard, defense: null, by: meKey });
-        room.players[meKey].handCount = g.hands[meKey].length;
-        g.attacker = g.defender;
-        g.defender = nextActive(room, g.defender);
-        g.phase = 'defense';
-        room.lastAction = `${room.players[meKey].name} перевел атаку картой ${selectedHandCard}.`;
-        room.log[`${Date.now()}_${Math.random().toString(36).slice(2, 6)}`] = room.lastAction;
-        return room;
-      });
-      selectedHandCard = null;
-    }
-
     async function takeTable() {
       if (!currentRoom) return;
       const meKey = getMeKey();
@@ -982,7 +919,9 @@
         room.players[meKey].handCount = g.hands[meKey].length;
         g.table = [];
         refillHands(room);
-        Object.keys(room.players).forEach(k => room.players[k].handCount = g.hands[k]?.length || 0);
+        (room.order || []).forEach(k => {
+          if (room.players[k]) room.players[k].handCount = g.hands[k]?.length || 0;
+        });
         g.defender = nextActive(room, g.defender);
         g.attacker = nextActive(room, g.defender);
         g.phase = 'attack';
@@ -1011,7 +950,9 @@
         g.discard.push(...cards);
         g.table = [];
         refillHands(room);
-        Object.keys(room.players).forEach(k => room.players[k].handCount = g.hands[k]?.length || 0);
+        (room.order || []).forEach(k => {
+          if (room.players[k]) room.players[k].handCount = g.hands[k]?.length || 0;
+        });
         g.attacker = g.defender;
         g.defender = nextActive(room, g.attacker);
         g.phase = 'attack';
@@ -1093,7 +1034,7 @@
             <div class="player-name"><span class="player-color" style="background:${p.color};"></span>${escapeHtml(p.name)}</div>
             <div>
               ${p.nickKey === turn ? '<span class="badge turn">ходит</span>' : ''}
-              ${p.nickKey === defender ? '<span class="badge target">защита</span>' : ''}
+              ${p.nickKey === defender ? '<span class="badge def">защита</span>' : ''}
               ${p.nickKey === getMeKey() ? '<span class="badge me">ты</span>' : ''}
             </div>
           </div>
@@ -1118,14 +1059,13 @@
       });
     }
 
-    function cardHtml(code, selected = false, small = false) {
+    function cardHtml(code, selected = false) {
       if (!code) return '<div class="card empty">пусто</div>';
       const c = parseCard(code);
       const red = RED_SUITS.has(c.suit) ? ' red-suit' : '';
       const sel = selected ? ' selected' : '';
-      const size = small ? ' small' : '';
       return `
-        <div class="card${red}${sel}${size}" data-card="${code}">
+        <div class="card${red}${sel}" data-card="${code}">
           <div class="corner-top"><div class="rank">${c.rank}</div><div class="suit">${c.suit}</div></div>
           <div class="corner-bottom"><div class="rank">${c.rank}</div><div class="suit">${c.suit}</div></div>
         </div>
@@ -1142,10 +1082,10 @@
         turnLabel.textContent = '—';
         defenderLabel.textContent = '—';
         deckLabel.textContent = '—';
-        roundInfo.textContent = currentRoom?.lastAction || 'Ждем, пока стая соберется.';
+        roundInfo.textContent = currentRoom?.lastAction || 'Ждем игроков.';
         trumpLabel.textContent = '—';
         swapLabel.textContent = '—';
-        tableCards.innerHTML = '<div class="pair"><div class="card empty">пусто</div><div class="card empty">пусто</div></div>';
+        tableCards.innerHTML = '<div class="pair"><div class="card empty">атака</div><div class="card empty">защита</div></div>';
         myHand.innerHTML = '<div class="card empty">нет карт</div>';
         disableAllActions();
         return;
@@ -1173,8 +1113,8 @@
       }
       tableCards.innerHTML = g.table.map((pair, idx) => `
         <div class="pair" data-pair-index="${idx}">
-          <div class="attack-slot">${cardHtml(pair.attack, selectedAttackIndex === idx && !pair.defense, true)}</div>
-          <div class="defense-slot">${cardHtml(pair.defense, false, true)}</div>
+          <div class="attack-slot">${cardHtml(pair.attack, selectedAttackIndex === idx && !pair.defense)}</div>
+          <div class="defense-slot">${cardHtml(pair.defense, false)}</div>
         </div>
       `).join('');
       tableCards.querySelectorAll('.attack-slot .card').forEach((el, i) => {
@@ -1209,7 +1149,6 @@
     function disableAllActions() {
       playBtn.disabled = true;
       defendBtn.disabled = true;
-      transferBtn.disabled = true;
       takeBtn.disabled = true;
       doneBtn.disabled = true;
       swapBtn.disabled = true;
@@ -1221,14 +1160,13 @@
       const selected = selectedHandCard;
       const unresolved = unresolvedPairs(g.table || []).length;
       playBtn.disabled = !(selected && canAttackWith(currentRoom, meKey, selected));
-      defendBtn.disabled = !(selected && selectedAttackIndex !== null && isMyTurnToDefend());
+      defendBtn.disabled = !(selected && selectedAttackIndex !== null && g.defender === meKey);
       if (!defendBtn.disabled) {
         const pair = g.table[selectedAttackIndex];
         defendBtn.disabled = !pair || pair.defense || !beats(selected, pair.attack, g.trumpSuit);
       }
-      transferBtn.disabled = !(selected && canTransferWith(currentRoom, meKey, selected));
-      takeBtn.disabled = !isMyTurnToDefend();
-      doneBtn.disabled = !(isMyTurnToDefend() && g.table.length && unresolved === 0);
+      takeBtn.disabled = !(g.defender === meKey);
+      doneBtn.disabled = !(g.defender === meKey && g.table.length && unresolved === 0);
       swapBtn.disabled = !canSwapTrump(currentRoom, meKey);
     }
 
@@ -1254,7 +1192,6 @@
     joinRoomBtn.addEventListener('click', joinRoom);
     playBtn.addEventListener('click', playAttackCard);
     defendBtn.addEventListener('click', defendSelected);
-    transferBtn.addEventListener('click', transferSelected);
     takeBtn.addEventListener('click', takeTable);
     doneBtn.addEventListener('click', doneRound);
     swapBtn.addEventListener('click', swapTrump);
