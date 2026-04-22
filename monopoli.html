@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Скумброполия</title>
   <link rel="icon" href="favicon.png" />
   <style>
@@ -18,40 +18,35 @@
       color: #c9d1d9;
     }
     .page {
-      max-width: 1280px;
+      max-width: 560px;
       margin: 0 auto;
-      padding: 12px;
+      padding: 10px;
     }
     .topbar {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-      margin-bottom: 12px;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 10px;
     }
     .title {
       margin: 0;
-      font-size: 32px;
+      font-size: 26px;
       font-weight: 700;
+      line-height: 1;
     }
     .sub {
       margin-top: 4px;
       opacity: 0.8;
-      font-size: 14px;
+      font-size: 13px;
+      line-height: 1.3;
     }
-    .top-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .btn, .theme-btn, .action-btn, .room-btn {
+    .theme-btn, .action-btn, .room-btn, .back-btn {
       font: inherit;
       color: inherit;
       background: transparent;
       border: 1px solid rgba(120,120,120,0.55);
-      border-radius: 10px;
+      border-radius: 12px;
       padding: 10px 12px;
       cursor: pointer;
       text-decoration: none;
@@ -59,89 +54,198 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
-      min-height: 42px;
+      min-height: 44px;
     }
-    .btn:hover, .theme-btn:hover, .action-btn:hover, .room-btn:hover {
-      background: rgba(255,255,255,0.06);
-    }
-    .action-btn:disabled, .room-btn:disabled {
+    .theme-btn:disabled, .action-btn:disabled, .room-btn:disabled {
       opacity: 0.45;
       cursor: not-allowed;
     }
-    .layout {
-      display: grid;
-      grid-template-columns: minmax(290px, 360px) 1fr;
-      gap: 12px;
-      align-items: start;
-    }
-    .sidebar, .board-wrap {
+    .panel {
       background: rgba(255,255,255,0.45);
       border-radius: 16px;
-      overflow: hidden;
       border: 1px solid rgba(120,120,120,0.18);
+      padding: 12px;
+      margin-bottom: 10px;
     }
-    body.dark .sidebar,
-    body.dark .board-wrap {
+    body.dark .panel {
       background: rgba(255,255,255,0.04);
       border-color: rgba(255,255,255,0.08);
     }
-    .sidebar-inner {
-      padding: 12px;
-      display: grid;
-      gap: 12px;
-    }
-    .panel {
-      border: 1px solid rgba(120,120,120,0.2);
-      border-radius: 12px;
-      padding: 12px;
-    }
     .panel-title {
-      font-size: 17px;
+      font-size: 16px;
       font-weight: 700;
       margin-bottom: 8px;
     }
-    .panel-copy {
-      font-size: 14px;
-      line-height: 1.4;
-      opacity: 0.9;
-    }
-    .room-controls, .name-controls, .player-actions, .mobile-nav {
-      display: grid;
-      gap: 8px;
-    }
-    .name-controls input,
-    .room-controls input {
+    .input {
       width: 100%;
-      min-height: 42px;
+      min-height: 44px;
       border: 1px solid rgba(120,120,120,0.35);
-      border-radius: 10px;
+      border-radius: 12px;
       background: transparent;
       color: inherit;
       font: inherit;
       padding: 10px 12px;
     }
-    .room-grid-2 {
+    .grid2 {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 8px;
     }
-    .stats-list {
+    .status-line {
+      margin-top: 8px;
+      font-size: 13px;
+      line-height: 1.35;
+      opacity: 0.82;
+    }
+    .stats {
       display: grid;
-      gap: 6px;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .stat {
+      border: 1px solid rgba(120,120,120,0.18);
+      border-radius: 12px;
+      padding: 10px;
+      font-size: 13px;
+      line-height: 1.3;
+    }
+    .dice-row {
+      display: grid;
+      grid-template-columns: 64px 1fr;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .dice {
+      width: 64px;
+      height: 64px;
+      border-radius: 14px;
+      background: #fff8e8;
+      color: #1f1f1f;
+      border: 2px solid rgba(31,31,31,0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      font-weight: 700;
+    }
+    body.dark .dice {
+      background: #e9eef5;
+    }
+    .dice.rolling {
+      animation: wobble 0.12s linear infinite;
+    }
+    @keyframes wobble {
+      0% { transform: rotate(-6deg) scale(0.97); }
+      50% { transform: rotate(6deg) scale(1.03); }
+      100% { transform: rotate(-6deg) scale(0.97); }
+    }
+    .dice-text {
+      font-size: 13px;
+      line-height: 1.35;
+      opacity: 0.85;
+    }
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .big-btn {
+      min-height: 52px;
+      font-weight: 700;
+    }
+    .cell-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .cell-band {
+      height: 18px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+    .blue { background: #2f7df7; }
+    .green { background: #1ba34a; }
+    .orange { background: #d98a1d; }
+    .red { background: #d63b36; }
+    .purple { background: #8d54d6; }
+    .gray { background: #81878f; }
+    .cell-name {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      line-height: 1.1;
+    }
+    .cell-meta {
+      font-size: 13px;
+      opacity: 0.72;
+      margin-bottom: 8px;
+    }
+    .cell-text {
       font-size: 14px;
+      line-height: 1.42;
+      margin-bottom: 10px;
+    }
+    .chip {
+      display: inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      border: 1px solid rgba(120,120,120,0.28);
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+    .mini-track {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .track-cell {
+      border: 1px solid rgba(120,120,120,0.18);
+      border-radius: 10px;
+      min-height: 46px;
+      padding: 5px;
+      position: relative;
+      background: rgba(255,255,255,0.08);
+      font-size: 10px;
+      line-height: 1.1;
+    }
+    .track-cell.active {
+      box-shadow: inset 0 0 0 2px rgba(0,102,204,0.4);
+      background: rgba(0,102,204,0.08);
+    }
+    body.dark .track-cell.active {
+      box-shadow: inset 0 0 0 2px rgba(88,166,255,0.4);
+      background: rgba(88,166,255,0.08);
+    }
+    .track-index {
+      opacity: 0.55;
+      font-size: 9px;
+      margin-bottom: 3px;
+    }
+    .track-tokens {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 3px;
+      margin-top: 3px;
+    }
+    .mini-token {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.25);
     }
     .players-list, .log-list {
       display: grid;
       gap: 8px;
-      max-height: 240px;
+      max-height: 220px;
       overflow: auto;
-      padding-right: 2px;
     }
     .player-card, .log-item {
       border: 1px solid rgba(120,120,120,0.18);
-      border-radius: 10px;
+      border-radius: 12px;
       padding: 8px 10px;
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.35;
     }
     .player-row {
@@ -169,250 +273,16 @@
       display: inline-block;
       padding: 2px 7px;
       border-radius: 999px;
-      font-size: 12px;
+      font-size: 11px;
       border: 1px solid rgba(120,120,120,0.25);
     }
     .turn-badge { background: rgba(0,102,204,0.12); }
     .me-badge { background: rgba(27,163,74,0.12); }
-    .board-wrap {
-      padding: 12px;
-    }
-    .board-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 10px;
-    }
-    .dice-box {
-      display: inline-flex;
-      align-items: center;
-      gap: 10px;
-      border: 1px solid rgba(120,120,120,0.2);
-      border-radius: 12px;
-      padding: 8px 10px;
-    }
-    .dice {
-      width: 52px;
-      height: 52px;
-      border-radius: 12px;
-      background: #fff8e8;
-      color: #1f1f1f;
-      border: 2px solid rgba(31,31,31,0.85);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-      font-weight: 700;
-      flex: 0 0 auto;
-    }
-    body.dark .dice {
-      background: #e9eef5;
-    }
-    .dice.rolling {
-      animation: wobble 0.12s linear infinite;
-    }
-    @keyframes wobble {
-      0% { transform: rotate(-6deg) scale(0.97); }
-      50% { transform: rotate(6deg) scale(1.03); }
-      100% { transform: rotate(-6deg) scale(0.97); }
-    }
-    .board-scroller {
-      width: 100%;
-      overflow-x: auto;
-      overflow-y: visible;
-      -webkit-overflow-scrolling: touch;
-      padding-bottom: 6px;
-    }
-    .board {
-      aspect-ratio: 1 / 1;
-      width: 100%;
-      min-width: 760px;
+    .nav-actions {
       display: grid;
-      grid-template-columns: 120px repeat(9, 1fr) 120px;
-      grid-template-rows: 120px repeat(9, 1fr) 120px;
-      border: 4px solid #1f1f1f;
-      background: #f6eed8;
-      position: relative;
-      box-shadow: inset 0 0 0 10px rgba(0,0,0,0.04);
-    }
-    body.dark .board {
-      background: #171b21;
-      border-color: #606a76;
-      box-shadow: inset 0 0 0 10px rgba(255,255,255,0.02);
-    }
-    .cell {
-      border: 2px solid rgba(31,31,31,0.82);
-      background: #f9f2df;
-      padding: 8px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      overflow: hidden;
-      position: relative;
-      transition: background 0.15s ease, box-shadow 0.15s ease;
-      cursor: pointer;
-    }
-    body.dark .cell {
-      border-color: rgba(185,195,205,0.35);
-      background: #1e242c;
-    }
-    .cell:hover {
-      background: #fff8e8;
-      z-index: 2;
-    }
-    body.dark .cell:hover {
-      background: #242c35;
-    }
-    .cell.active {
-      background: #d8ecff;
-      box-shadow: inset 0 0 0 3px rgba(0,102,204,0.35);
-      z-index: 3;
-    }
-    body.dark .cell.active {
-      background: #29384a;
-      box-shadow: inset 0 0 0 3px rgba(88,166,255,0.35);
-    }
-    .cell.owned::after {
-      content: "✓";
-      position: absolute;
-      right: 6px;
-      bottom: 6px;
-      font-size: 14px;
-      opacity: 0.75;
-      font-weight: 700;
-    }
-    .corner {
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      font-weight: 700;
-      font-size: 14px;
-      background: #efe4c8;
-    }
-    body.dark .corner {
-      background: #222a31;
-    }
-    .corner-icon {
-      font-size: 28px;
-      display: block;
-      margin-bottom: 6px;
-    }
-    .band {
-      height: 16px;
-      border-radius: 4px;
-      margin-bottom: 6px;
-      flex-shrink: 0;
-    }
-    .blue { background: #2f7df7; }
-    .green { background: #1ba34a; }
-    .orange { background: #d98a1d; }
-    .red { background: #d63b36; }
-    .purple { background: #8d54d6; }
-    .gray { background: #81878f; }
-    .cell-title {
-      font-size: 12px;
-      font-weight: 700;
-      line-height: 1.08;
-      word-break: break-word;
-    }
-    .cell-price {
-      font-size: 11px;
-      opacity: 0.76;
-      line-height: 1.08;
-      margin-top: 6px;
-    }
-    .center-zone {
-      grid-column: 2 / 11;
-      grid-row: 2 / 11;
-      position: relative;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      background:
-        radial-gradient(circle at center, rgba(255,255,255,0.35), rgba(255,255,255,0.05) 60%),
-        linear-gradient(135deg, rgba(0,0,0,0.02), rgba(0,0,0,0.06));
-    }
-    body.dark .center-zone {
-      background:
-        radial-gradient(circle at center, rgba(255,255,255,0.05), rgba(255,255,255,0.02) 60%),
-        linear-gradient(135deg, rgba(255,255,255,0.02), rgba(255,255,255,0.04));
-    }
-    .logo {
-      text-align: center;
-      transform: rotate(-12deg);
-      user-select: none;
-      pointer-events: none;
-    }
-    .logo-big {
-      font-size: clamp(34px, 5vw, 72px);
-      font-weight: 700;
-      line-height: 1;
-      margin-bottom: 10px;
-    }
-    .logo-small {
-      font-size: clamp(14px, 1.6vw, 22px);
-      opacity: 0.85;
-    }
-    .details-box {
-      position: absolute;
-      right: 18px;
-      bottom: 18px;
-      max-width: 340px;
-      background: rgba(255,255,255,0.9);
-      border: 1px solid rgba(120,120,120,0.25);
-      border-radius: 14px;
-      padding: 12px;
-      backdrop-filter: blur(4px);
-      z-index: 20;
-    }
-    body.dark .details-box {
-      background: rgba(17,21,27,0.92);
-      border-color: rgba(255,255,255,0.08);
-    }
-    .details-title {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-    .details-text {
-      font-size: 14px;
-      line-height: 1.42;
-      opacity: 0.86;
-      margin-bottom: 10px;
-    }
-    .details-badge {
-      display: inline-block;
-      padding: 3px 8px;
-      border-radius: 999px;
-      font-size: 12px;
-      border: 1px solid rgba(120,120,120,0.3);
-      margin-bottom: 10px;
-    }
-    .details-actions {
-      display: flex;
+      grid-template-columns: 1fr 1fr 1fr;
       gap: 8px;
-      flex-wrap: wrap;
-    }
-    .token {
-      position: absolute;
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      border: 2px solid rgba(0,0,0,0.35);
-      box-shadow: 0 2px 10px rgba(0,0,0,0.24);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 11px;
-      font-weight: 700;
-      color: #fff;
-      z-index: 15;
-      transition: left 0.32s ease, top 0.32s ease, transform 0.32s ease;
-      pointer-events: none;
+      margin-top: 10px;
     }
     .chance-overlay {
       position: fixed;
@@ -421,15 +291,15 @@
       display: none;
       align-items: center;
       justify-content: center;
-      padding: 16px;
+      padding: 14px;
       z-index: 999;
     }
     .chance-overlay.open {
       display: flex;
     }
     .chance-card {
-      max-width: 460px;
       width: 100%;
+      max-width: 420px;
       background: #fff8e8;
       color: #222;
       border-radius: 18px;
@@ -440,77 +310,17 @@
     }
     .chance-card h2 {
       margin: 0 0 10px 0;
-      font-size: 26px;
+      font-size: 24px;
     }
     .chance-card p {
       margin: 0 0 14px 0;
       line-height: 1.45;
+      font-size: 15px;
     }
     .chance-actions {
-      display: flex;
+      display: grid;
+      grid-template-columns: 1fr;
       gap: 8px;
-      flex-wrap: wrap;
-    }
-    .status-line {
-      font-size: 13px;
-      opacity: 0.78;
-    }
-    @media (max-width: 980px) {
-      .layout {
-        grid-template-columns: 1fr;
-      }
-      .board {
-        grid-template-columns: 82px repeat(9, 1fr) 82px;
-        grid-template-rows: 82px repeat(9, 1fr) 82px;
-      }
-      .cell-title {
-        font-size: 10px;
-      }
-      .cell-price {
-        font-size: 9px;
-      }
-      .details-box {
-        position: static;
-        margin-top: 14px;
-        max-width: none;
-      }
-      .center-zone {
-        align-items: flex-start;
-      }
-      .logo {
-        margin-top: 14px;
-      }
-      .token {
-        width: 28px;
-        height: 28px;
-        font-size: 10px;
-      }
-    }
-    @media (max-width: 720px) {
-      .page {
-        padding: 10px;
-      }
-      .title {
-        font-size: 28px;
-      }
-      .sidebar-inner,
-      .board-wrap {
-        padding: 10px;
-      }
-      .room-grid-2,
-      .player-actions,
-      .mobile-nav,
-      .details-actions,
-      .chance-actions {
-        grid-template-columns: 1fr;
-        display: grid;
-      }
-      .board {
-        min-width: 700px;
-      }
-      .board-scroller {
-        margin: 0 -2px;
-      }
     }
   </style>
 </head>
@@ -519,142 +329,72 @@
     <div class="topbar">
       <div>
         <h1 class="title">Скумброполия</h1>
-        <div class="sub">Многопользовательская настолка про дороги, копчение, плацкарт и моральный ущерб</div>
+        <div class="sub">Только для телефона. Без огромного поля, зато удобно играть.</div>
       </div>
-      <div class="top-actions">
-        <a class="btn" href="index.html">назад</a>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <a class="back-btn" href="index.html">назад</a>
         <button class="theme-btn" id="themeBtn" type="button">🌙</button>
       </div>
     </div>
 
-    <div class="layout">
-      <aside class="sidebar">
-        <div class="sidebar-inner">
-          <div class="panel">
-            <div class="panel-title">Вход в партию</div>
-            <div class="name-controls">
-              <input id="playerNameInput" type="text" maxlength="24" placeholder="имя скумбрии" />
-            </div>
-            <div class="room-controls" style="margin-top:8px;">
-              <div class="room-grid-2">
-                <button class="room-btn" id="createRoomBtn" type="button">создать комнату</button>
-                <button class="room-btn" id="joinRoomBtn" type="button">войти в комнату</button>
-              </div>
-              <input id="roomCodeInput" type="text" maxlength="6" placeholder="код комнаты" />
-            </div>
-            <div class="status-line" id="roomStatus" style="margin-top:8px;">Сначала введи имя, потом создай комнату или зайди в существующую.</div>
-          </div>
+    <div class="panel">
+      <div class="panel-title">Вход в партию</div>
+      <input id="playerNameInput" class="input" type="text" maxlength="24" placeholder="имя скумбрии" />
+      <div class="grid2" style="margin-top:8px;">
+        <button class="room-btn" id="createRoomBtn" type="button">создать</button>
+        <button class="room-btn" id="joinRoomBtn" type="button">войти</button>
+      </div>
+      <input id="roomCodeInput" class="input" type="text" maxlength="6" placeholder="код комнаты" style="margin-top:8px;" />
+      <div class="status-line" id="roomStatus">Сначала введи имя, потом создай комнату или зайди по коду.</div>
+    </div>
 
-          <div class="panel">
-            <div class="panel-title">Твоя скумбрия</div>
-            <div class="stats-list">
-              <div>Комната: <b id="roomCodeLabel">—</b></div>
-              <div>Позиция: <b id="playerPosition">—</b></div>
-              <div>Копчекоины: <b id="playerCoins">—</b></div>
-              <div>Кругов: <b id="playerLaps">—</b></div>
-              <div>Собственность: <b id="playerOwned">—</b></div>
-              <div>Ход: <b id="turnLabel">—</b></div>
-            </div>
-            <div class="player-actions" style="margin-top:10px;">
-              <button class="action-btn" id="rollBtn" type="button" disabled>бросить кубик</button>
-              <button class="action-btn" id="chanceBtn" type="button" disabled>шанс</button>
-              <button class="action-btn" id="buyBtnMain" type="button" disabled>купить клетку</button>
-              <button class="action-btn" id="resetRoomBtn" type="button" disabled>новая партия</button>
-            </div>
-            <div class="mobile-nav">
-              <button class="action-btn" id="prevCellBtn" type="button">← клетка</button>
-              <button class="action-btn" id="focusPlayerBtn" type="button">моя клетка</button>
-              <button class="action-btn" id="nextCellBtn" type="button">клетка →</button>
-            </div>
-          </div>
+    <div class="panel">
+      <div class="dice-row">
+        <div class="dice" id="dice">🎲</div>
+        <div class="dice-text" id="diceText">Ждём скумбрийного движения</div>
+      </div>
+      <div class="stats">
+        <div class="stat">Комната<br><b id="roomCodeLabel">—</b></div>
+        <div class="stat">Ход<br><b id="turnLabel">—</b></div>
+        <div class="stat">Клетка<br><b id="playerPosition">—</b></div>
+        <div class="stat">Копчекоины<br><b id="playerCoins">—</b></div>
+        <div class="stat">Кругов<br><b id="playerLaps">—</b></div>
+        <div class="stat">Активы<br><b id="playerOwned">—</b></div>
+      </div>
+      <div class="actions" style="margin-top:10px;">
+        <button class="action-btn big-btn" id="rollBtn" type="button" disabled>бросить кубик</button>
+        <button class="action-btn big-btn" id="buyBtnMain" type="button" disabled>купить клетку</button>
+        <button class="action-btn big-btn" id="chanceBtn" type="button" disabled>тянуть шанс</button>
+        <button class="action-btn big-btn" id="resetRoomBtn" type="button" disabled>новая партия</button>
+      </div>
+      <div class="nav-actions">
+        <button class="action-btn" id="prevCellBtn" type="button">←</button>
+        <button class="action-btn" id="focusPlayerBtn" type="button">моя клетка</button>
+        <button class="action-btn" id="nextCellBtn" type="button">→</button>
+      </div>
+    </div>
 
-          <div class="panel">
-            <div class="panel-title">Игроки</div>
-            <div class="players-list" id="playersList">
-              <div class="player-card">Пока никого. Создай комнату и зови стаю.</div>
-            </div>
-          </div>
+    <div class="panel cell-card">
+      <div class="cell-band gray" id="cellBand"></div>
+      <div class="cell-name" id="cellName">Ждем игру</div>
+      <div class="cell-meta" id="cellMeta">режим ожидания</div>
+      <div class="cell-text" id="cellText">Создай комнату или зайди в существующую, чтобы скумбрии пошли по кругу.</div>
+      <div id="cellExtras"></div>
+      <div class="mini-track" id="miniTrack"></div>
+    </div>
 
-          <div class="panel">
-            <div class="panel-title">Лог партии</div>
-            <div class="log-list" id="logList">
-              <div class="log-item">Здесь будут ходы, покупки, шансы и прочая настольная драма.</div>
-            </div>
-          </div>
-        </div>
-      </aside>
+    <div class="panel">
+      <div class="panel-title">Игроки</div>
+      <div class="players-list" id="playersList">
+        <div class="player-card">Пока никого. Создай комнату и зови стаю.</div>
+      </div>
+    </div>
 
-      <section class="board-wrap">
-        <div class="board-top">
-          <div class="panel-title" style="margin:0;">Поле</div>
-          <div class="dice-box">
-            <div class="dice" id="dice">🎲</div>
-            <div class="status-line" id="diceText">Ждём скумбрийного движения</div>
-          </div>
-        </div>
-
-        <div class="board-scroller" id="boardScroller">
-          <div class="board" id="board">
-            <div class="cell corner board-cell" data-index="0" style="grid-row:11;grid-column:1;"><span class="corner-icon">🚲</span>СТАРТ<br>САМАРА</div>
-            <div class="cell corner board-cell" data-index="10" style="grid-row:11;grid-column:11;"><span class="corner-icon">🚂</span>ВЫБРОСКА<br>НА ЭЛЬКЕ</div>
-            <div class="cell corner board-cell" data-index="20" style="grid-row:1;grid-column:11;"><span class="corner-icon">⛰️</span>ГОРНОЕ<br>КОПЧЕНИЕ</div>
-            <div class="cell corner board-cell" data-index="30" style="grid-row:1;grid-column:1;"><span class="corner-icon">🐟</span>СКУМБРИЯ<br>БЕСПЛАТНО</div>
-
-            <div class="cell board-cell" data-index="1" style="grid-row:11;grid-column:2;"><div><div class="band blue"></div><div class="cell-title">Подвалье</div></div><div class="cell-price">120</div></div>
-            <div class="cell board-cell" data-index="2" style="grid-row:11;grid-column:3;"><div><div class="band blue"></div><div class="cell-title">СыСа</div></div><div class="cell-price">140</div></div>
-            <div class="cell board-cell" data-index="3" style="grid-row:11;grid-column:4;"><div><div class="band gray"></div><div class="cell-title">Шанс</div></div><div class="cell-price">тянуть</div></div>
-            <div class="cell board-cell" data-index="4" style="grid-row:11;grid-column:5;"><div><div class="band orange"></div><div class="cell-title">Башкирия</div></div><div class="cell-price">220</div></div>
-            <div class="cell board-cell" data-index="5" style="grid-row:11;grid-column:6;"><div><div class="band green"></div><div class="cell-title">Остановка пожрать</div></div><div class="cell-price">+75</div></div>
-            <div class="cell board-cell" data-index="6" style="grid-row:11;grid-column:7;"><div><div class="band red"></div><div class="cell-title">Минводы</div></div><div class="cell-price">260</div></div>
-            <div class="cell board-cell" data-index="7" style="grid-row:11;grid-column:8;"><div><div class="band purple"></div><div class="cell-title">Кофе из Пятерки</div></div><div class="cell-price">90</div></div>
-            <div class="cell board-cell" data-index="8" style="grid-row:11;grid-column:9;"><div><div class="band orange"></div><div class="cell-title">Узбекистан</div></div><div class="cell-price">320</div></div>
-            <div class="cell board-cell" data-index="9" style="grid-row:11;grid-column:10;"><div><div class="band orange"></div><div class="cell-title">Киргизия</div></div><div class="cell-price">360</div></div>
-
-            <div class="cell board-cell" data-index="11" style="grid-row:10;grid-column:11;"><div><div class="band gray"></div><div class="cell-title">Хостел</div></div><div class="cell-price">налог 80</div></div>
-            <div class="cell board-cell" data-index="12" style="grid-row:9;grid-column:11;"><div><div class="band green"></div><div class="cell-title">Ремнабор</div></div><div class="cell-price">100</div></div>
-            <div class="cell board-cell" data-index="13" style="grid-row:8;grid-column:11;"><div><div class="band purple"></div><div class="cell-title">Плацкарт</div></div><div class="cell-price">150</div></div>
-            <div class="cell board-cell" data-index="14" style="grid-row:7;grid-column:11;"><div><div class="band red"></div><div class="cell-title">Пыль дорог</div></div><div class="cell-price">170</div></div>
-            <div class="cell board-cell" data-index="15" style="grid-row:6;grid-column:11;"><div><div class="band gray"></div><div class="cell-title">Шанс</div></div><div class="cell-price">тянуть</div></div>
-            <div class="cell board-cell" data-index="16" style="grid-row:5;grid-column:11;"><div><div class="band blue"></div><div class="cell-title">Грэвел</div></div><div class="cell-price">180</div></div>
-            <div class="cell board-cell" data-index="17" style="grid-row:4;grid-column:11;"><div><div class="band red"></div><div class="cell-title">Эверестинг</div></div><div class="cell-price">налог 120</div></div>
-            <div class="cell board-cell" data-index="18" style="grid-row:3;grid-column:11;"><div><div class="band green"></div><div class="cell-title">Термы</div></div><div class="cell-price">+100</div></div>
-            <div class="cell board-cell" data-index="19" style="grid-row:2;grid-column:11;"><div><div class="band purple"></div><div class="cell-title">Костер</div></div><div class="cell-price">110</div></div>
-
-            <div class="cell board-cell" data-index="21" style="grid-row:1;grid-column:10;"><div><div class="band blue"></div><div class="cell-title">День Потаскумбрии</div></div><div class="cell-price">210</div></div>
-            <div class="cell board-cell" data-index="22" style="grid-row:1;grid-column:9;"><div><div class="band blue"></div><div class="cell-title">Ски-тур</div></div><div class="cell-price">160</div></div>
-            <div class="cell board-cell" data-index="23" style="grid-row:1;grid-column:8;"><div><div class="band green"></div><div class="cell-title">Каток</div></div><div class="cell-price">130</div></div>
-            <div class="cell board-cell" data-index="24" style="grid-row:1;grid-column:7;"><div><div class="band red"></div><div class="cell-title">Горный бонус</div></div><div class="cell-price">+150</div></div>
-            <div class="cell board-cell" data-index="25" style="grid-row:1;grid-column:6;"><div><div class="band gray"></div><div class="cell-title">Шанс</div></div><div class="cell-price">тянуть</div></div>
-            <div class="cell board-cell" data-index="26" style="grid-row:1;grid-column:5;"><div><div class="band orange"></div><div class="cell-title">Кэмп</div></div><div class="cell-price">190</div></div>
-            <div class="cell board-cell" data-index="27" style="grid-row:1;grid-column:4;"><div><div class="band green"></div><div class="cell-title">GPX</div></div><div class="cell-price">80</div></div>
-            <div class="cell board-cell" data-index="28" style="grid-row:1;grid-column:3;"><div><div class="band purple"></div><div class="cell-title">Станция</div></div><div class="cell-price">+60</div></div>
-            <div class="cell board-cell" data-index="29" style="grid-row:1;grid-column:2;"><div><div class="band red"></div><div class="cell-title">Горы</div></div><div class="cell-price">280</div></div>
-
-            <div class="cell board-cell" data-index="31" style="grid-row:2;grid-column:1;"><div><div class="band green"></div><div class="cell-title">Насос</div></div><div class="cell-price">95</div></div>
-            <div class="cell board-cell" data-index="32" style="grid-row:3;grid-column:1;"><div><div class="band gray"></div><div class="cell-title">Дождь</div></div><div class="cell-price">налог 70</div></div>
-            <div class="cell board-cell" data-index="33" style="grid-row:4;grid-column:1;"><div><div class="band purple"></div><div class="cell-title">Мост</div></div><div class="cell-price">115</div></div>
-            <div class="cell board-cell" data-index="34" style="grid-row:5;grid-column:1;"><div><div class="band red"></div><div class="cell-title">Встречный ветер</div></div><div class="cell-price">налог 90</div></div>
-            <div class="cell board-cell" data-index="35" style="grid-row:6;grid-column:1;"><div><div class="band blue"></div><div class="cell-title">Асфальт</div></div><div class="cell-price">150</div></div>
-            <div class="cell board-cell" data-index="36" style="grid-row:7;grid-column:1;"><div><div class="band green"></div><div class="cell-title">Грязь</div></div><div class="cell-price">170</div></div>
-            <div class="cell board-cell" data-index="37" style="grid-row:8;grid-column:1;"><div><div class="band purple"></div><div class="cell-title">Сон после</div></div><div class="cell-price">+50</div></div>
-            <div class="cell board-cell" data-index="38" style="grid-row:9;grid-column:1;"><div><div class="band blue"></div><div class="cell-title">Скумбрия</div></div><div class="cell-price">130</div></div>
-            <div class="cell board-cell" data-index="39" style="grid-row:10;grid-column:1;"><div><div class="band orange"></div><div class="cell-title">Легенда</div></div><div class="cell-price">300</div></div>
-
-            <div class="center-zone">
-              <div class="logo">
-                <div class="logo-big">СКУМБРОПОЛИЯ</div>
-                <div class="logo-small">покупай не улицы, а поводы ехать дальше</div>
-              </div>
-              <div class="details-box" id="detailsBox">
-                <div class="details-title">Ждем игру</div>
-                <div class="details-text">Создай комнату или зайди в существующую, чтобы скумбрии пошли по полю.</div>
-                <div class="details-badge">режим ожидания</div>
-                <div class="details-actions"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+    <div class="panel">
+      <div class="panel-title">Лог партии</div>
+      <div class="log-list" id="logList">
+        <div class="log-item">Здесь будут ходы, покупки, шансы и прочая настольная драма.</div>
+      </div>
     </div>
   </div>
 
@@ -670,17 +410,7 @@
 
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-app.js';
-    import {
-      getDatabase,
-      ref,
-      onValue,
-      set,
-      get,
-      update,
-      runTransaction,
-      off,
-      remove
-    } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js';
+    import { getDatabase, ref, onValue, set, get, update, runTransaction } from 'https://www.gstatic.com/firebasejs/12.12.0/firebase-database.js';
 
     const firebaseConfig = {
       apiKey: 'AIzaSyDHqiDJv2-zDTzZN9YLQg2hwykNKnX7qcI',
@@ -698,12 +428,12 @@
 
     const PLAYER_COLORS = ['#d63b36', '#2f7df7', '#1ba34a', '#8d54d6'];
     const DICE_FACES = ['🎲', '⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+    const BAND_CLASS = {
+      property: ['blue','green','orange','red','purple'],
+      chance: 'gray', bonus: 'green', tax: 'red', start: 'blue', jail: 'gray', free: 'purple'
+    };
 
     const themeBtn = document.getElementById('themeBtn');
-    const board = document.getElementById('board');
-    const boardCells = [...document.querySelectorAll('.board-cell')];
-    const detailsBox = document.getElementById('detailsBox');
-    const boardScroller = document.getElementById('boardScroller');
     const playerNameInput = document.getElementById('playerNameInput');
     const createRoomBtn = document.getElementById('createRoomBtn');
     const joinRoomBtn = document.getElementById('joinRoomBtn');
@@ -729,60 +459,63 @@
     const closeChanceBtn = document.getElementById('closeChanceBtn');
     const dice = document.getElementById('dice');
     const diceText = document.getElementById('diceText');
+    const cellBand = document.getElementById('cellBand');
+    const cellName = document.getElementById('cellName');
+    const cellMeta = document.getElementById('cellMeta');
+    const cellText = document.getElementById('cellText');
+    const cellExtras = document.getElementById('cellExtras');
+    const miniTrack = document.getElementById('miniTrack');
 
     const playerId = getLocalPlayerId();
-    const savedName = localStorage.getItem('skumbropoly_name') || '';
-    playerNameInput.value = savedName;
-
+    playerNameInput.value = localStorage.getItem('skumbropoly_name') || '';
     let roomCode = localStorage.getItem('skumbropoly_room') || '';
     let roomUnsub = null;
     let currentRoom = null;
     let activeCellIndex = 0;
     let localDiceTimer = null;
-    let tokenEls = new Map();
     let pendingChance = null;
 
     const cells = {
       0: { name: 'Старт / Самара', type: 'start', text: 'Пересекаешь старт — получаешь 200 копчекоинов за упрямство.' },
-      1: { name: 'Подвалье', type: 'property', price: 120, rent: 24, badge: 'свежий актив', text: 'Классическая недвижимость для тех, кто хочет красоты, дороги и легкой жести.' },
-      2: { name: 'СыСа', type: 'property', price: 140, rent: 28, badge: 'трасса с именем', text: 'Клетка с характером. Покупают те, кто любит и маршрут, и загадочное название.' },
+      1: { name: 'Подвалье', type: 'property', price: 120, rent: 24, badge: 'свежий актив', text: 'Классическая недвижимость для тех, кто хочет красоты, дороги и легкой жести.', color: 'blue' },
+      2: { name: 'СыСа', type: 'property', price: 140, rent: 28, badge: 'трасса с именем', text: 'Клетка с характером. Покупают те, кто любит и маршрут, и загадочное название.', color: 'blue' },
       3: { name: 'Шанс', type: 'chance', text: 'Тяни карту и смотри, что жизнь приготовила на этот раз.' },
-      4: { name: 'Башкирия', type: 'property', price: 220, rent: 44, badge: 'плацкарт deluxe', text: 'Пыль, хостел, гордость. Актив для серьезной скумбрийной души.' },
+      4: { name: 'Башкирия', type: 'property', price: 220, rent: 44, badge: 'плацкарт deluxe', text: 'Пыль, хостел, гордость. Актив для серьезной скумбрийной души.', color: 'orange' },
       5: { name: 'Остановка пожрать', type: 'bonus', value: 75, text: 'Редкая добрая клетка. Просто поешь и воспрянь.' },
-      6: { name: 'Минводы', type: 'property', price: 260, rent: 52, badge: 'летнее копчение', text: 'Солидная южная позиция для тех, кто любит большие планы.' },
-      7: { name: 'Кофе из Пятерки', type: 'property', price: 90, rent: 18, badge: 'сомнительная сила', text: 'Актив с риском для психики, но с высоким культурным значением.' },
-      8: { name: 'Узбекистан', type: 'property', price: 320, rent: 64, badge: 'большой выезд', text: 'Международная скумбрийная недвижимость повышенной амбициозности.' },
-      9: { name: 'Киргизия', type: 'property', price: 360, rent: 72, badge: 'горы и жизнь', text: 'Высокогорный актив для тех, кто плохо переносит скуку.' },
+      6: { name: 'Минводы', type: 'property', price: 260, rent: 52, badge: 'летнее копчение', text: 'Солидная южная позиция для тех, кто любит большие планы.', color: 'red' },
+      7: { name: 'Кофе из Пятерки', type: 'property', price: 90, rent: 18, badge: 'сомнительная сила', text: 'Актив с риском для психики, но с высоким культурным значением.', color: 'purple' },
+      8: { name: 'Узбекистан', type: 'property', price: 320, rent: 64, badge: 'большой выезд', text: 'Международная скумбрийная недвижимость повышенной амбициозности.', color: 'orange' },
+      9: { name: 'Киргизия', type: 'property', price: 360, rent: 72, badge: 'горы и жизнь', text: 'Высокогорный актив для тех, кто плохо переносит скуку.', color: 'orange' },
       10: { name: 'Выброска на эльке', type: 'jail', text: 'Формально не тюрьма, а транспортная коррекция планов.' },
       11: { name: 'Хостел', type: 'tax', value: 80, text: 'Заплати за интеллигентную скученность и ночь среди своих и не очень.' },
-      12: { name: 'Ремнабор', type: 'property', price: 100, rent: 20, badge: 'цивилизация', text: 'Один из важнейших активов на рынке здравого смысла.' },
-      13: { name: 'Плацкарт', type: 'property', price: 150, rent: 30, badge: 'аристократия', text: 'Люкс без пафоса. Клетка силы и запаха лапши.' },
-      14: { name: 'Пыль дорог', type: 'property', price: 170, rent: 34, badge: 'натуральный скраб', text: 'Без нее любая поездка выглядит подозрительно приличной.' },
+      12: { name: 'Ремнабор', type: 'property', price: 100, rent: 20, badge: 'цивилизация', text: 'Один из важнейших активов на рынке здравого смысла.', color: 'green' },
+      13: { name: 'Плацкарт', type: 'property', price: 150, rent: 30, badge: 'аристократия', text: 'Люкс без пафоса. Клетка силы и запаха лапши.', color: 'purple' },
+      14: { name: 'Пыль дорог', type: 'property', price: 170, rent: 34, badge: 'натуральный скраб', text: 'Без нее любая поездка выглядит подозрительно приличной.', color: 'red' },
       15: { name: 'Шанс', type: 'chance', text: 'Опять шанс. В этой жизни он повторяется подозрительно часто.' },
-      16: { name: 'Грэвел', type: 'property', price: 180, rent: 36, badge: 'честная поверхность', text: 'Актив, на котором умирают понты и рождается правда.' },
+      16: { name: 'Грэвел', type: 'property', price: 180, rent: 36, badge: 'честная поверхность', text: 'Актив, на котором умирают понты и рождается правда.', color: 'blue' },
       17: { name: 'Эверестинг', type: 'tax', value: 120, text: 'Психологический ущерб. Заплати и подумай, зачем тебе это вообще.' },
       18: { name: 'Термы', type: 'bonus', value: 100, text: 'Тепло, пар и временное ощущение, что жизнь наладилась.' },
-      19: { name: 'Костер', type: 'property', price: 110, rent: 22, badge: 'байки и дым', text: 'Тут конвертируют усталость в клубную мифологию.' },
+      19: { name: 'Костер', type: 'property', price: 110, rent: 22, badge: 'байки и дым', text: 'Тут конвертируют усталость в клубную мифологию.', color: 'purple' },
       20: { name: 'Горное копчение', type: 'free', text: 'Просто постой и подумай, как ты сюда вообще доехал.' },
-      21: { name: 'День Потаскумбрии', type: 'property', price: 210, rent: 42, badge: 'главный праздник', text: 'Тут празднуют рыбу, движение и правильную степень всратости.' },
-      22: { name: 'Ски-тур', type: 'property', price: 160, rent: 32, badge: 'зимняя классика', text: 'Покупают те, кому мало одной формы страдания.' },
-      23: { name: 'Каток', type: 'property', price: 130, rent: 26, badge: 'побочный квест', text: 'Небольшой, но атмосферный актив для межсезонья.' },
+      21: { name: 'День Потаскумбрии', type: 'property', price: 210, rent: 42, badge: 'главный праздник', text: 'Тут празднуют рыбу, движение и правильную степень всратости.', color: 'blue' },
+      22: { name: 'Ски-тур', type: 'property', price: 160, rent: 32, badge: 'зимняя классика', text: 'Покупают те, кому мало одной формы страдания.', color: 'blue' },
+      23: { name: 'Каток', type: 'property', price: 130, rent: 26, badge: 'побочный квест', text: 'Небольшой, но атмосферный актив для межсезонья.', color: 'green' },
       24: { name: 'Горный бонус', type: 'bonus', value: 150, text: 'Редкая удача: красиво пострадал и даже что-то с этого получил.' },
       25: { name: 'Шанс', type: 'chance', text: 'Тяни карту. Судьба опять решила поучаствовать.' },
-      26: { name: 'Кэмп', type: 'property', price: 190, rent: 38, badge: 'вписаться', text: 'Актив для тех, кто ценит выезды с бытом, дымом и странными решениями.' },
-      27: { name: 'GPX', type: 'property', price: 80, rent: 16, badge: 'магический свиток', text: 'Скромная, но могущественная вещь. Без нее быстро начинается фольклор.' },
+      26: { name: 'Кэмп', type: 'property', price: 190, rent: 38, badge: 'вписаться', text: 'Актив для тех, кто ценит выезды с бытом, дымом и странными решениями.', color: 'orange' },
+      27: { name: 'GPX', type: 'property', price: 80, rent: 16, badge: 'магический свиток', text: 'Скромная, но могущественная вещь. Без нее быстро начинается фольклор.', color: 'green' },
       28: { name: 'Станция', type: 'bonus', value: 60, text: 'Получаешь бонус за грамотную логистику и своевременное смирение.' },
-      29: { name: 'Горы', type: 'property', price: 280, rent: 56, badge: 'выше только кризис', text: 'Большой красивый актив. Дорогой, тяжелый, но очень уважаемый.' },
+      29: { name: 'Горы', type: 'property', price: 280, rent: 56, badge: 'выше только кризис', text: 'Большой красивый актив. Дорогой, тяжелый, но очень уважаемый.', color: 'red' },
       30: { name: 'Скумбрия бесплатно', type: 'free', text: 'Сидишь на рыбе, восстанавливаешь мораль и вспоминаешь, зачем все это.' },
-      31: { name: 'Насос', type: 'property', price: 95, rent: 19, badge: 'держит мир', text: 'Одна из опор цивилизации и скумбрийной устойчивости.' },
+      31: { name: 'Насос', type: 'property', price: 95, rent: 19, badge: 'держит мир', text: 'Одна из опор цивилизации и скумбрийной устойчивости.', color: 'green' },
       32: { name: 'Дождь', type: 'tax', value: 70, text: 'Заплати за мокрую разметку, холодные ладони и дополнительную серьезность.' },
-      33: { name: 'Мост', type: 'property', price: 115, rent: 23, badge: 'скользко и честно', text: 'Небольшой актив, который учит уважать поверхность.' },
+      33: { name: 'Мост', type: 'property', price: 115, rent: 23, badge: 'скользко и честно', text: 'Небольшой актив, который учит уважать поверхность.', color: 'purple' },
       34: { name: 'Встречный ветер', type: 'tax', value: 90, text: 'Налог на характер. Просто отдай деньги и не возмущайся.' },
-      35: { name: 'Асфальт', type: 'property', price: 150, rent: 30, badge: 'обманчивый уют', text: 'Вроде бы спокойно, но потом все равно станет сложно.' },
-      36: { name: 'Грязь', type: 'property', price: 170, rent: 34, badge: 'посвящение', text: 'Берут не ради комфорта, а ради честности происходящего.' },
+      35: { name: 'Асфальт', type: 'property', price: 150, rent: 30, badge: 'обманчивый уют', text: 'Вроде бы спокойно, но потом все равно станет сложно.', color: 'blue' },
+      36: { name: 'Грязь', type: 'property', price: 170, rent: 34, badge: 'посвящение', text: 'Берут не ради комфорта, а ради честности происходящего.', color: 'green' },
       37: { name: 'Сон после', type: 'bonus', value: 50, text: 'Маленькая награда за то, что ты вообще вывез этот день.' },
-      38: { name: 'Скумбрия', type: 'property', price: 130, rent: 26, badge: 'тотем и пища', text: 'Символический актив с сильным культурным фундаментом.' },
-      39: { name: 'Легенда', type: 'property', price: 300, rent: 60, badge: 'рассказывать месяц', text: 'Большой дорогой актив. Приносит уважение и нескончаемые пересказы.' }
+      38: { name: 'Скумбрия', type: 'property', price: 130, rent: 26, badge: 'тотем и пища', text: 'Символический актив с сильным культурным фундаментом.', color: 'blue' },
+      39: { name: 'Легенда', type: 'property', price: 300, rent: 60, badge: 'рассказывать месяц', text: 'Большой дорогой актив. Приносит уважение и нескончаемые пересказы.', color: 'orange' }
     };
 
     const chanceCards = [
@@ -806,20 +539,6 @@
       }
       return id;
     }
-
-    function setThemeIcon() {
-      themeBtn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
-    }
-
-    function toggleTheme() {
-      document.body.classList.toggle('dark');
-      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
-      setThemeIcon();
-    }
-
-    themeBtn.addEventListener('click', toggleTheme);
-    if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
-    setThemeIcon();
 
     function roomRef(code) {
       return ref(db, `skumbropoly_rooms/${code}`);
@@ -854,6 +573,18 @@
       };
     }
 
+    function setThemeIcon() {
+      themeBtn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
+    }
+    function toggleTheme() {
+      document.body.classList.toggle('dark');
+      localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
+      setThemeIcon();
+    }
+    themeBtn.addEventListener('click', toggleTheme);
+    if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark');
+    setThemeIcon();
+
     function getNameOrAlert() {
       const name = playerNameInput.value.trim();
       if (!name) {
@@ -884,7 +615,7 @@
         await set(roomRef(code), createEmptyRoom(code, name));
         roomCodeInput.value = code;
         connectToRoom(code);
-      } catch (e) {
+      } catch {
         roomStatus.textContent = 'Не удалось создать комнату.';
       } finally {
         createRoomBtn.disabled = false;
@@ -904,19 +635,15 @@
         const snap = await get(roomRef(code));
         if (!snap.exists()) {
           roomStatus.textContent = 'Комната не найдена.';
-          joinRoomBtn.disabled = false;
           return;
         }
         const room = snap.val();
         const players = room.players || {};
         const turnOrder = room.turnOrder || [];
-
         if (!players[playerId] && turnOrder.length >= 4) {
           roomStatus.textContent = 'Комната уже полная.';
-          joinRoomBtn.disabled = false;
           return;
         }
-
         if (!players[playerId]) {
           const color = PLAYER_COLORS[turnOrder.length % PLAYER_COLORS.length];
           await update(roomRef(code), {
@@ -942,7 +669,7 @@
           });
         }
         connectToRoom(code);
-      } catch (e) {
+      } catch {
         roomStatus.textContent = 'Не удалось войти в комнату.';
       } finally {
         joinRoomBtn.disabled = false;
@@ -955,8 +682,7 @@
       localStorage.setItem('skumbropoly_room', code);
       roomCodeLabel.textContent = code;
       roomStatus.textContent = `Подключено к комнате ${code}`;
-      const targetRef = roomRef(code);
-      roomUnsub = onValue(targetRef, snap => {
+      roomUnsub = onValue(roomRef(code), snap => {
         if (!snap.exists()) {
           currentRoom = null;
           roomStatus.textContent = 'Комната исчезла.';
@@ -970,33 +696,26 @@
     function getPlayersOrdered() {
       if (!currentRoom) return [];
       const players = currentRoom.players || {};
-      const turnOrder = currentRoom.turnOrder || [];
-      return turnOrder.map(id => players[id]).filter(Boolean);
+      const order = currentRoom.turnOrder || [];
+      return order.map(id => players[id]).filter(Boolean);
     }
-
     function getMe() {
       return currentRoom?.players?.[playerId] || null;
     }
-
     function isMyTurn() {
       if (!currentRoom) return false;
-      const turnOrder = currentRoom.turnOrder || [];
-      const currentId = turnOrder[currentRoom.currentTurnIndex || 0];
-      return currentId === playerId;
+      const order = currentRoom.turnOrder || [];
+      return order[currentRoom.currentTurnIndex || 0] === playerId;
     }
 
     function renderRoom() {
       renderPlayers();
       renderLog();
-      renderBoardOwnership();
-      renderTokens();
       renderMe();
+      renderMiniTrack();
       updateControls();
-      const action = currentRoom?.lastAction || 'Ждем движения.';
-      diceText.textContent = action;
-      if ((currentRoom?.lastDice || 0) > 0) {
-        dice.textContent = DICE_FACES[currentRoom.lastDice];
-      }
+      diceText.textContent = currentRoom?.lastAction || 'Ждём скумбрийного движения';
+      if ((currentRoom?.lastDice || 0) > 0) dice.textContent = DICE_FACES[currentRoom.lastDice];
     }
 
     function renderPlayers() {
@@ -1008,9 +727,9 @@
       const currentTurnPlayerId = (currentRoom.turnOrder || [])[currentRoom.currentTurnIndex || 0];
       playersList.innerHTML = '';
       players.forEach(player => {
+        const ownedCount = Object.keys(player.owned || {}).length;
         const el = document.createElement('div');
         el.className = 'player-card';
-        const ownedCount = Object.keys(player.owned || {}).length;
         el.innerHTML = `
           <div class="player-row">
             <div class="player-name"><span class="player-color" style="background:${player.color};"></span>${escapeHtml(player.name)}</div>
@@ -1027,7 +746,7 @@
     }
 
     function renderLog() {
-      const logs = Object.values(currentRoom?.log || {}).slice(-12).reverse();
+      const logs = Object.values(currentRoom?.log || {}).slice(-10).reverse();
       if (!logs.length) {
         logList.innerHTML = '<div class="log-item">Ходов пока не было.</div>';
         return;
@@ -1049,10 +768,11 @@
         playerLaps.textContent = '—';
         playerOwned.textContent = '—';
         turnLabel.textContent = '—';
+        setActiveCell(0);
         return;
       }
-      const turnOrder = currentRoom.turnOrder || [];
-      const turnPlayer = currentRoom.players?.[turnOrder[currentRoom.currentTurnIndex || 0]];
+      const order = currentRoom.turnOrder || [];
+      const turnPlayer = currentRoom.players?.[order[currentRoom.currentTurnIndex || 0]];
       playerPosition.textContent = cells[me.position]?.name || 'Старт';
       playerCoins.textContent = me.coins;
       playerLaps.textContent = me.laps;
@@ -1067,10 +787,9 @@
       const me = getMe();
       const cell = me ? cells[me.position] : null;
       const ownerId = currentRoom?.ownership?.[me?.position];
-      const canBuy = !!(myTurn && cell?.type === 'property' && !ownerId && me.coins >= cell.price);
       rollBtn.disabled = !myTurn;
       chanceBtn.disabled = !(myTurn && cell?.type === 'chance');
-      buyBtnMain.disabled = !canBuy;
+      buyBtnMain.disabled = !(myTurn && cell?.type === 'property' && !ownerId && me.coins >= cell.price);
       resetRoomBtn.disabled = !(currentRoom && currentRoom.hostId === playerId);
     }
 
@@ -1083,86 +802,49 @@
         .replaceAll("'", '&#039;');
     }
 
-    function renderBoardOwnership() {
-      boardCells.forEach(cellEl => {
-        const idx = Number(cellEl.dataset.index);
-        const ownerId = currentRoom?.ownership?.[idx];
-        cellEl.classList.toggle('owned', !!ownerId);
-      });
+    function setBandClass(cell) {
+      cellBand.className = 'cell-band';
+      const cls = cell.color || BAND_CLASS[cell.type] || 'gray';
+      cellBand.classList.add(cls);
     }
 
     function setActiveCell(index) {
       activeCellIndex = index;
-      boardCells.forEach(cell => cell.classList.toggle('active', Number(cell.dataset.index) === index));
       const cell = cells[index];
       if (!cell) return;
       const ownerId = currentRoom?.ownership?.[index];
       const owner = ownerId ? currentRoom.players?.[ownerId] : null;
-      let badge = cell.badge || cell.type;
-      if (owner) badge = `владелец: ${owner.name}`;
-      detailsBox.innerHTML = `
-        <div class="details-title">${cell.name}</div>
-        <div class="details-text">${cell.text}</div>
-        <div class="details-badge">${badge}</div>
-        <div class="details-actions">
-          ${cell.type === 'property' ? '<button class="action-btn" id="buyBtnInner" type="button">купить</button>' : ''}
-          ${cell.type === 'chance' ? '<button class="action-btn" id="chanceBtnInner" type="button">тянуть шанс</button>' : ''}
-        </div>
-      `;
-      const buyBtnInner = document.getElementById('buyBtnInner');
-      if (buyBtnInner) buyBtnInner.addEventListener('click', buyCurrentCell);
-      const chanceBtnInner = document.getElementById('chanceBtnInner');
-      if (chanceBtnInner) chanceBtnInner.addEventListener('click', drawChance);
-      if (window.innerWidth <= 720) scrollToCell(index);
+      setBandClass(cell);
+      cellName.textContent = cell.name;
+      cellMeta.textContent = owner ? `владелец: ${owner.name}` : (cell.badge || cell.type);
+      cellText.textContent = cell.text;
+      const extras = [];
+      if (cell.price) extras.push(`<span class="chip">цена: ${cell.price}</span>`);
+      if (cell.rent) extras.push(`<span class="chip">аренда: ${cell.rent}</span>`);
+      if (cell.value) extras.push(`<span class="chip">эффект: ${cell.value > 0 ? '+' : ''}${cell.value}</span>`);
+      if (ownerId && owner) extras.push(`<span class="chip">принадлежит ${escapeHtml(owner.name)}</span>`);
+      cellExtras.innerHTML = extras.join(' ');
+      renderMiniTrack();
     }
 
-    function scrollToCell(index) {
-      const cellEl = board.querySelector(`.board-cell[data-index="${index}"]`);
-      if (!cellEl) return;
-      const targetLeft = cellEl.offsetLeft - boardScroller.clientWidth / 2 + cellEl.clientWidth / 2;
-      boardScroller.scrollTo({ left: Math.max(0, targetLeft), behavior: 'smooth' });
-    }
-
-    function renderTokens() {
-      tokenEls.forEach(el => el.remove());
-      tokenEls.clear();
-      if (!currentRoom?.players) return;
-
-      const grouped = {};
-      Object.values(currentRoom.players).forEach(player => {
-        const pos = player.position || 0;
-        if (!grouped[pos]) grouped[pos] = [];
-        grouped[pos].push(player);
-      });
-
-      Object.entries(grouped).forEach(([posStr, players]) => {
-        const pos = Number(posStr);
-        const cellEl = board.querySelector(`.board-cell[data-index="${pos}"]`);
-        if (!cellEl) return;
-        const boardRect = board.getBoundingClientRect();
-        const rect = cellEl.getBoundingClientRect();
-        const offsets = [
-          { x: -12, y: -12 },
-          { x: 12, y: -12 },
-          { x: -12, y: 12 },
-          { x: 12, y: 12 }
-        ];
-        players.forEach((player, idx) => {
-          const token = document.createElement('div');
-          token.className = 'token';
-          token.style.background = player.color || PLAYER_COLORS[0];
-          token.textContent = (player.name || '?').slice(0, 2).toUpperCase();
-          const off = offsets[idx] || { x: 0, y: 0 };
-          const left = rect.left - boardRect.left + rect.width / 2 - 17 + off.x;
-          const top = rect.top - boardRect.top + rect.height / 2 - 17 + off.y;
-          token.style.left = `${left}px`;
-          token.style.top = `${top}px`;
-          token.style.transform = `rotate(${pos * 7}deg)`;
-          token.title = player.name;
-          board.appendChild(token);
-          tokenEls.set(player.id, token);
-        });
-      });
+    function renderMiniTrack() {
+      miniTrack.innerHTML = '';
+      const start = activeCellIndex;
+      const players = Object.values(currentRoom?.players || {});
+      for (let i = 0; i < 8; i++) {
+        const idx = (start + i) % 40;
+        const cell = cells[idx];
+        const el = document.createElement('div');
+        el.className = 'track-cell' + (idx === activeCellIndex ? ' active' : '');
+        const tokens = players.filter(p => (p.position || 0) === idx);
+        el.innerHTML = `
+          <div class="track-index">${idx}</div>
+          <div>${escapeHtml(cell.name)}</div>
+          <div class="track-tokens">${tokens.map(p => `<span class="mini-token" style="background:${p.color};" title="${escapeHtml(p.name)}"></span>`).join('')}</div>
+        `;
+        el.addEventListener('click', () => setActiveCell(idx));
+        miniTrack.appendChild(el);
+      }
     }
 
     function nextTurnIndex(room) {
@@ -1189,13 +871,9 @@
     }
 
     function computeLanding(oldPos, roll) {
-      let newPos = (oldPos + roll) % 40;
+      const newPos = (oldPos + roll) % 40;
       const passedStart = oldPos + roll >= 40;
       return { newPos, passedStart };
-    }
-
-    function appendLogPatch(text) {
-      return { [`log/${Date.now()}_${Math.random().toString(36).slice(2, 6)}`]: text };
     }
 
     async function rollDice() {
@@ -1211,7 +889,6 @@
             if (currentId !== playerId) return room;
             const player = room.players?.[playerId];
             if (!player) return room;
-
             const roll = Math.floor(Math.random() * 6) + 1;
             const { newPos, passedStart } = computeLanding(player.position || 0, roll);
             player.position = newPos;
@@ -1219,11 +896,9 @@
               player.coins = (player.coins || 0) + 200;
               player.laps = (player.laps || 0) + 1;
             }
-
             let message = `${player.name} бросил ${roll} и пришел на клетку "${cells[newPos].name}".`;
             const landingCell = cells[newPos];
             const ownerId = room.ownership?.[newPos];
-
             if (landingCell.type === 'bonus') {
               player.coins += landingCell.value || 0;
               message += ` Получил ${landingCell.value} копчекоинов.`;
@@ -1239,18 +914,12 @@
               if (owner) owner.coins = (owner.coins || 0) + rent;
               message += ` Заплатил аренду ${rent}.`;
             }
-
             room.lastDice = roll;
             room.lastAction = message;
             room.log = room.log || {};
             room.log[`${Date.now()}_${Math.random().toString(36).slice(2,6)}`] = message;
-
             if (landingCell.type === 'chance') {
-              room.pendingChance = {
-                playerId,
-                position: newPos,
-                createdAt: Date.now()
-              };
+              room.pendingChance = { playerId, position: newPos, createdAt: Date.now() };
               room.lastAction = `${player.name} пришел на "Шанс" и должен тянуть карту.`;
               room.log[`${Date.now()}_${Math.random().toString(36).slice(2,6)}`] = room.lastAction;
             } else {
@@ -1260,7 +929,7 @@
           });
           const latest = await get(roomRef(roomCode));
           stopDiceAnimation(latest.val()?.lastDice || 1);
-        } catch (e) {
+        } catch {
           stopDiceAnimation(1);
         }
       }, delay);
@@ -1268,29 +937,23 @@
 
     async function buyCurrentCell() {
       if (!currentRoom || !isMyTurn()) return;
-      const me = getMe();
-      if (!me) return;
-      const position = me.position;
-      const cell = cells[position];
-      if (!cell || cell.type !== 'property') return;
       await runTransaction(roomRef(roomCode), room => {
         if (!room) return room;
         const order = room.turnOrder || [];
-        const currentId = order[room.currentTurnIndex || 0];
-        if (currentId !== playerId) return room;
+        if (order[room.currentTurnIndex || 0] !== playerId) return room;
         const player = room.players?.[playerId];
         if (!player) return room;
         const pos = player.position;
-        const currentCell = cells[pos];
-        if (!currentCell || currentCell.type !== 'property') return room;
+        const cell = cells[pos];
+        if (!cell || cell.type !== 'property') return room;
         room.ownership = room.ownership || {};
         if (room.ownership[pos]) return room;
-        if ((player.coins || 0) < currentCell.price) return room;
-        player.coins -= currentCell.price;
+        if ((player.coins || 0) < cell.price) return room;
+        player.coins -= cell.price;
         room.ownership[pos] = playerId;
         player.owned = player.owned || {};
         player.owned[pos] = true;
-        const message = `${player.name} купил клетку "${currentCell.name}" за ${currentCell.price}.`;
+        const message = `${player.name} купил клетку "${cell.name}" за ${cell.price}.`;
         room.lastAction = message;
         room.log = room.log || {};
         room.log[`${Date.now()}_${Math.random().toString(36).slice(2,6)}`] = message;
@@ -1300,7 +963,9 @@
 
     function drawChance() {
       if (!currentRoom || !isMyTurn()) return;
-      if (currentRoom.pendingChance?.playerId !== playerId && cells[getMe()?.position || 0]?.type !== 'chance') return;
+      const me = getMe();
+      if (!me) return;
+      if (currentRoom.pendingChance?.playerId !== playerId && cells[me.position]?.type !== 'chance') return;
       pendingChance = chanceCards[Math.floor(Math.random() * chanceCards.length)];
       chanceText.textContent = pendingChance.text;
       chanceOverlay.classList.add('open');
@@ -1314,15 +979,12 @@
       const card = pendingChance;
       chanceOverlay.classList.remove('open');
       pendingChance = null;
-
       await runTransaction(roomRef(roomCode), room => {
         if (!room) return room;
         const order = room.turnOrder || [];
-        const currentId = order[room.currentTurnIndex || 0];
-        if (currentId !== playerId) return room;
+        if (order[room.currentTurnIndex || 0] !== playerId) return room;
         const player = room.players?.[playerId];
         if (!player) return room;
-
         if (typeof card.coins === 'number') {
           player.coins = Math.max(0, (player.coins || 0) + card.coins);
         }
@@ -1342,23 +1004,16 @@
             player.laps = (player.laps || 0) + 1;
           }
         }
-
         const cell = cells[player.position];
         const ownerId = room.ownership?.[player.position];
-        let message = `${player.name} вытянул шанс: ${card.text}`;
-
-        if (cell?.type === 'bonus') {
-          player.coins += cell.value || 0;
-        }
-        if (cell?.type === 'tax') {
-          player.coins = Math.max(0, (player.coins || 0) - (cell.value || 0));
-        }
+        if (cell?.type === 'bonus') player.coins += cell.value || 0;
+        if (cell?.type === 'tax') player.coins = Math.max(0, (player.coins || 0) - (cell.value || 0));
         if (cell?.type === 'property' && ownerId && ownerId !== playerId) {
           const owner = room.players?.[ownerId];
           player.coins = Math.max(0, (player.coins || 0) - (cell.rent || 0));
           if (owner) owner.coins = (owner.coins || 0) + (cell.rent || 0);
         }
-
+        const message = `${player.name} вытянул шанс: ${card.text}`;
         room.pendingChance = null;
         room.currentTurnIndex = nextTurnIndex(room);
         room.lastAction = message;
@@ -1372,7 +1027,6 @@
       if (!currentRoom || currentRoom.hostId !== playerId) return;
       await runTransaction(roomRef(roomCode), room => {
         if (!room) return room;
-        const order = room.turnOrder || [];
         room.currentTurnIndex = 0;
         room.lastDice = 0;
         room.pendingChance = null;
@@ -1392,11 +1046,6 @@
       stopDiceAnimation(0);
     }
 
-    function moveFocus(step) {
-      const next = (activeCellIndex + step + 40) % 40;
-      setActiveCell(next);
-    }
-
     function cleanupPresence() {
       if (!roomCode) return;
       update(roomRef(roomCode), {
@@ -1404,23 +1053,18 @@
       }).catch(() => {});
     }
 
-    boardCells.forEach(cell => {
-      cell.addEventListener('click', () => setActiveCell(Number(cell.dataset.index)));
-    });
-
     createRoomBtn.addEventListener('click', createRoom);
     joinRoomBtn.addEventListener('click', joinRoom);
     rollBtn.addEventListener('click', rollDice);
     chanceBtn.addEventListener('click', drawChance);
     buyBtnMain.addEventListener('click', buyCurrentCell);
     resetRoomBtn.addEventListener('click', resetRoomGame);
-    prevCellBtn.addEventListener('click', () => moveFocus(-1));
-    nextCellBtn.addEventListener('click', () => moveFocus(1));
+    prevCellBtn.addEventListener('click', () => setActiveCell((activeCellIndex + 39) % 40));
+    nextCellBtn.addEventListener('click', () => setActiveCell((activeCellIndex + 1) % 40));
     focusPlayerBtn.addEventListener('click', () => {
       const me = getMe();
       if (!me) return;
       setActiveCell(me.position);
-      scrollToCell(me.position);
     });
     closeChanceBtn.addEventListener('click', applyChance);
     chanceOverlay.addEventListener('click', e => {
@@ -1429,7 +1073,6 @@
     playerNameInput.addEventListener('input', () => {
       localStorage.setItem('skumbropoly_name', playerNameInput.value.trim());
     });
-    window.addEventListener('resize', () => renderTokens());
     window.addEventListener('beforeunload', cleanupPresence);
 
     if (roomCode) {
