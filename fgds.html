@@ -30,7 +30,7 @@
 
     .wrap {
       width: 100%;
-      max-width: 520px;
+      max-width: 560px;
     }
 
     .topbar {
@@ -88,9 +88,9 @@
 
     .controls {
       display: flex;
-      gap: 10px;
+      gap: 14px;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 22px;
       flex-wrap: wrap;
     }
 
@@ -125,34 +125,34 @@
       display: flex;
       align-items: center;
       gap: 10px;
-      min-height: 56px;
+      min-height: 90px;
     }
 
     .dice {
-      width: 52px;
-      height: 52px;
-      border-radius: 14px;
-      border: 2px solid rgba(0,0,0,0.16);
+      width: 86px;
+      height: 86px;
+      border-radius: 20px;
+      border: 3px solid rgba(0,0,0,0.18);
       background: #fffaf0;
       color: #222;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 30px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      font-size: 46px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.10);
       transform-origin: center;
     }
 
     .dice.rolling {
-      animation: diceRoll 0.18s linear infinite;
+      animation: diceRoll 0.14s linear infinite;
     }
 
     @keyframes diceRoll {
-      0%   { transform: rotate(-8deg) scale(0.96); }
-      25%  { transform: rotate(10deg) scale(1.02); }
-      50%  { transform: rotate(-6deg) scale(0.98); }
-      75%  { transform: rotate(7deg) scale(1.03); }
-      100% { transform: rotate(-8deg) scale(0.96); }
+      0%   { transform: rotate(-10deg) scale(0.94); }
+      25%  { transform: rotate(12deg) scale(1.04); }
+      50%  { transform: rotate(-8deg) scale(0.97); }
+      75%  { transform: rotate(9deg) scale(1.05); }
+      100% { transform: rotate(-10deg) scale(0.94); }
     }
 
     .grid {
@@ -162,7 +162,7 @@
 
     .row {
       display: grid;
-      grid-template-columns: 58px 1fr;
+      grid-template-columns: 62px 1fr;
       gap: 12px;
       align-items: stretch;
     }
@@ -174,9 +174,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 28px;
+      font-size: 30px;
       font-weight: 700;
-      min-height: 66px;
+      min-height: 68px;
       letter-spacing: 1px;
     }
 
@@ -186,9 +186,35 @@
     }
 
     .word-box {
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      gap: 10px;
+      min-height: 68px;
+    }
+
+    .mini-letter {
+      border-radius: 14px;
+      border: 2px solid rgba(0,0,0,0.12);
+      background: #fff;
+      color: #222;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      min-height: 68px;
+    }
+
+    body.dark .mini-letter {
+      background: #11161d;
+      color: #c9d1d9;
+      border-color: rgba(255,255,255,0.12);
+    }
+
+    .word-main {
       border-radius: 14px;
       border: 2px solid rgba(0,0,0,0.10);
-      min-height: 66px;
+      min-height: 68px;
       display: flex;
       align-items: center;
       padding: 0 16px;
@@ -202,7 +228,7 @@
       position: relative;
     }
 
-    body.dark .word-box {
+    body.dark .word-main {
       border-color: rgba(255,255,255,0.12);
       background:
         linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px);
@@ -217,7 +243,8 @@
       text-overflow: ellipsis;
     }
 
-    .word-box.flash {
+    .word-main.flash,
+    .mini-letter.flash {
       animation: flashBox 0.35s ease;
     }
 
@@ -227,26 +254,8 @@
       100% { transform: scale(1); opacity: 1; }
     }
 
-    .full-result {
-      margin-top: 18px;
-      padding-top: 18px;
-      border-top: 1px solid rgba(128,128,128,0.25);
-    }
-
-    .full-result h2 {
-      margin: 0 0 10px;
-      font-size: 18px;
-      opacity: 0.85;
-    }
-
-    .phrase {
-      font-size: 26px;
-      font-weight: 700;
-      line-height: 1.25;
-    }
-
     .hint {
-      margin-top: 12px;
+      margin-top: 14px;
       opacity: 0.72;
       line-height: 1.4;
       font-size: 14px;
@@ -257,18 +266,32 @@
         font-size: 28px;
       }
 
-      .word-box {
+      .dice {
+        width: 74px;
+        height: 74px;
+        font-size: 40px;
+      }
+
+      .word-main {
         font-size: 20px;
-        min-height: 60px;
+        min-height: 62px;
+      }
+
+      .mini-letter,
+      .letter-box {
+        min-height: 62px;
+      }
+
+      .mini-letter {
+        font-size: 22px;
       }
 
       .letter-box {
-        min-height: 60px;
-        font-size: 24px;
+        font-size: 26px;
       }
 
-      .phrase {
-        font-size: 22px;
+      .word-box {
+        grid-template-columns: 48px 1fr;
       }
     }
   </style>
@@ -282,43 +305,50 @@
 
     <div class="card">
       <h1>Какой ФГДС сегодня ты?</h1>
-      <p class="sub">Жми кнопку "копчение" и получай случайную, но осмысленную расшифровку.</p>
+      <p class="sub">Жми "копчение" и получай новую внятную расшифровку ФГДС.</p>
 
       <div class="controls">
         <button type="button" id="spinBtn" onclick="spinFGDS()">копчение</button>
         <div class="dice-wrap">
-          <div class="dice" id="dice">🎲</div>
+          <div class="dice" id="dice">🐟</div>
         </div>
       </div>
 
       <div class="grid">
         <div class="row">
           <div class="letter-box">Ф</div>
-          <div class="word-box" id="boxF"><span class="word" id="wordF">...</span></div>
+          <div class="word-box">
+            <div class="mini-letter" id="miniF">Ф</div>
+            <div class="word-main" id="boxF"><span class="word" id="wordF">...</span></div>
+          </div>
         </div>
 
         <div class="row">
           <div class="letter-box">Г</div>
-          <div class="word-box" id="boxG"><span class="word" id="wordG">...</span></div>
+          <div class="word-box">
+            <div class="mini-letter" id="miniG">Г</div>
+            <div class="word-main" id="boxG"><span class="word" id="wordG">...</span></div>
+          </div>
         </div>
 
         <div class="row">
           <div class="letter-box">Д</div>
-          <div class="word-box" id="boxD"><span class="word" id="wordD">...</span></div>
+          <div class="word-box">
+            <div class="mini-letter" id="miniD">Д</div>
+            <div class="word-main" id="boxD"><span class="word" id="wordD">...</span></div>
+          </div>
         </div>
 
         <div class="row">
           <div class="letter-box">С</div>
-          <div class="word-box" id="boxS"><span class="word" id="wordS">...</span></div>
+          <div class="word-box">
+            <div class="mini-letter" id="miniS">С</div>
+            <div class="word-main" id="boxS"><span class="word" id="wordS">...</span></div>
+          </div>
         </div>
       </div>
 
-      <div class="full-result">
-        <h2>итог</h2>
-        <div class="phrase" id="fullPhrase">Ф ...<br>Г ...<br>Д ...<br>С ...</div>
-      </div>
-
-      <div class="hint">каждый раз новая скумбрийная сущность. без совсем фонетической дичи, но с нормальным рыбным духом.</div>
+      <div class="hint">каждый раз новая скумбрийная сущность. без совсем дикой фонетической хуйни, но с правильным духом.</div>
     </div>
   </div>
 
@@ -336,7 +366,17 @@
         "Формация",
         "Феномены",
         "Фантомы",
-        "Фристайлеры"
+        "Фристайлеры",
+        "Факиры",
+        "Флагманы",
+        "Форсажники",
+        "Флибустьеры",
+        "Фундаменталисты",
+        "Фронтовики",
+        "Фартовые",
+        "Фигуранты",
+        "Фантазеры",
+        "Фурии"
       ],
       G: [
         "Грязи",
@@ -346,7 +386,17 @@
         "Гонок",
         "Гор",
         "Гари",
-        "Голода"
+        "Голода",
+        "Галопа",
+        "Гудежа",
+        "Груза",
+        "Глубины",
+        "Героизма",
+        "Гребеней",
+        "Гула",
+        "Гонева",
+        "Гарища",
+        "Глэма"
       ],
       D: [
         "Дикой",
@@ -356,7 +406,17 @@
         "Движухи",
         "Дистанции",
         "Доблести",
-        "Дерзости"
+        "Дерзости",
+        "Динамики",
+        "Драмы",
+        "Долбежки",
+        "Дисциплины",
+        "Дальняков",
+        "Дурищи",
+        "Дорожности",
+        "Дикойness".replace("ness",""),
+        "Душевности",
+        "Дребезги"
       ],
       S: [
         "Скорости",
@@ -366,11 +426,21 @@
         "Стаи",
         "Соли",
         "Смелости",
-        "Сквозняка"
+        "Сквозняка",
+        "Силы",
+        "Солнцепека",
+        "Стали",
+        "Судьбы",
+        "Срыва",
+        "Сервиса",
+        "Скитаний",
+        "Сумрака",
+        "Срывача",
+        "Самоиронии"
       ]
     };
 
-    const diceFaces = ["🎲", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+    const fishFaces = ["🐟", "🐠", "🐡", "🦈", "🐬", "🐋"];
 
     function setIcon() {
       icon.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
@@ -392,35 +462,34 @@
       return arr[Math.floor(Math.random() * arr.length)];
     }
 
+    function animateBox(letter) {
+      const box = document.getElementById("box" + letter);
+      const mini = document.getElementById("mini" + letter);
+
+      box.classList.remove("flash");
+      mini.classList.remove("flash");
+      void box.offsetWidth;
+      void mini.offsetWidth;
+      box.classList.add("flash");
+      mini.classList.add("flash");
+    }
+
     function setWord(letter, value) {
       document.getElementById("word" + letter).textContent = value;
-      const box = document.getElementById("box" + letter);
-      box.classList.remove("flash");
-      void box.offsetWidth;
-      box.classList.add("flash");
+      animateBox(letter);
     }
 
-    function updateFullPhrase() {
-      const f = document.getElementById("wordF").textContent;
-      const g = document.getElementById("wordG").textContent;
-      const d = document.getElementById("wordD").textContent;
-      const s = document.getElementById("wordS").textContent;
-
-      document.getElementById("fullPhrase").innerHTML =
-        `Ф ${f}<br>Г ${g}<br>Д ${d}<br>С ${s}`;
-    }
-
-    function rollDiceAnimation(duration = 1400) {
+    function rollDiceAnimation(duration = 1500) {
       dice.classList.add("rolling");
 
       const interval = setInterval(() => {
-        dice.textContent = randomItem(diceFaces);
+        dice.textContent = randomItem(fishFaces);
       }, 90);
 
       setTimeout(() => {
         clearInterval(interval);
         dice.classList.remove("rolling");
-        dice.textContent = randomItem(diceFaces.slice(1));
+        dice.textContent = randomItem(fishFaces);
       }, duration);
     }
 
@@ -437,8 +506,7 @@
         () => setWord("F", f),
         () => setWord("G", g),
         () => setWord("D", d),
-        () => setWord("S", s),
-        () => updateFullPhrase()
+        () => setWord("S", s)
       ];
 
       spinSteps.forEach((step, index) => {
@@ -447,7 +515,7 @@
 
       setTimeout(() => {
         spinBtn.disabled = false;
-      }, 1600);
+      }, 1650);
     }
 
     spinFGDS();
