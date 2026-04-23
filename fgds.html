@@ -94,56 +94,34 @@
       flex-wrap: wrap;
     }
 
-    button {
-      font: inherit;
-      padding: 12px 16px;
-      border-radius: 12px;
-      border: 1px solid #999;
-      background: transparent;
-      color: inherit;
-      cursor: pointer;
-      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
-    }
-
-    button:hover {
-      background: rgba(0,0,0,0.04);
-    }
-
-    button:active {
-      transform: scale(0.97);
-    }
-
-    body.dark button {
-      border-color: #555;
-    }
-
-    body.dark button:hover {
-      background: rgba(255,255,255,0.05);
-    }
-
-    .dice-wrap {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      min-height: 90px;
-    }
-
-    .dice {
-      width: 86px;
-      height: 86px;
+    .fish-dice {
+      width: 88px;
+      height: 88px;
       border-radius: 20px;
-      border: 3px solid rgba(0,0,0,0.18);
+      border: 3px solid rgba(0,0,0,0.12);
       background: #fffaf0;
       color: #222;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 46px;
+      font-size: 48px;
       box-shadow: 0 8px 20px rgba(0,0,0,0.10);
       transform-origin: center;
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
-    .dice.rolling {
+    .fish-dice:hover {
+      transform: scale(1.03);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.14);
+    }
+
+    .fish-dice:active {
+      transform: scale(0.97);
+    }
+
+    .fish-dice.rolling {
       animation: diceRoll 0.14s linear infinite;
     }
 
@@ -153,6 +131,12 @@
       50%  { transform: rotate(-8deg) scale(0.97); }
       75%  { transform: rotate(9deg) scale(1.05); }
       100% { transform: rotate(-10deg) scale(0.94); }
+    }
+
+    .controls-text {
+      font-size: 14px;
+      opacity: 0.72;
+      line-height: 1.35;
     }
 
     .grid {
@@ -183,32 +167,6 @@
     body.dark .letter-box {
       background: #c9d1d9;
       color: #111;
-    }
-
-    .word-box {
-      display: grid;
-      grid-template-columns: 52px 1fr;
-      gap: 10px;
-      min-height: 68px;
-    }
-
-    .mini-letter {
-      border-radius: 14px;
-      border: 2px solid rgba(0,0,0,0.12);
-      background: #fff;
-      color: #222;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-      font-weight: 700;
-      min-height: 68px;
-    }
-
-    body.dark .mini-letter {
-      background: #11161d;
-      color: #c9d1d9;
-      border-color: rgba(255,255,255,0.12);
     }
 
     .word-main {
@@ -244,7 +202,7 @@
     }
 
     .word-main.flash,
-    .mini-letter.flash {
+    .letter-box.flash {
       animation: flashBox 0.35s ease;
     }
 
@@ -266,10 +224,10 @@
         font-size: 28px;
       }
 
-      .dice {
-        width: 74px;
-        height: 74px;
-        font-size: 40px;
+      .fish-dice {
+        width: 76px;
+        height: 76px;
+        font-size: 42px;
       }
 
       .word-main {
@@ -277,21 +235,9 @@
         min-height: 62px;
       }
 
-      .mini-letter,
       .letter-box {
         min-height: 62px;
-      }
-
-      .mini-letter {
-        font-size: 22px;
-      }
-
-      .letter-box {
         font-size: 26px;
-      }
-
-      .word-box {
-        grid-template-columns: 48px 1fr;
       }
     }
   </style>
@@ -305,46 +251,32 @@
 
     <div class="card">
       <h1>Какой ФГДС сегодня ты?</h1>
-      <p class="sub">Жми "копчение" и получай новую внятную расшифровку ФГДС.</p>
+      <p class="sub">Жми на рыбу и получай новую внятную расшифровку ФГДС.</p>
 
       <div class="controls">
-        <button type="button" id="spinBtn" onclick="spinFGDS()">копчение</button>
-        <div class="dice-wrap">
-          <div class="dice" id="dice">🐟</div>
-        </div>
+        <div class="fish-dice" id="fishDice" onclick="spinFGDS()" title="крутить">🐡</div>
+        <div class="controls-text">тык по рыбе = копчение</div>
       </div>
 
       <div class="grid">
         <div class="row">
-          <div class="letter-box">Ф</div>
-          <div class="word-box">
-            <div class="mini-letter" id="miniF">Ф</div>
-            <div class="word-main" id="boxF"><span class="word" id="wordF">...</span></div>
-          </div>
+          <div class="letter-box" id="letterF">Ф</div>
+          <div class="word-main" id="boxF"><span class="word" id="wordF">...</span></div>
         </div>
 
         <div class="row">
-          <div class="letter-box">Г</div>
-          <div class="word-box">
-            <div class="mini-letter" id="miniG">Г</div>
-            <div class="word-main" id="boxG"><span class="word" id="wordG">...</span></div>
-          </div>
+          <div class="letter-box" id="letterG">Г</div>
+          <div class="word-main" id="boxG"><span class="word" id="wordG">...</span></div>
         </div>
 
         <div class="row">
-          <div class="letter-box">Д</div>
-          <div class="word-box">
-            <div class="mini-letter" id="miniD">Д</div>
-            <div class="word-main" id="boxD"><span class="word" id="wordD">...</span></div>
-          </div>
+          <div class="letter-box" id="letterD">Д</div>
+          <div class="word-main" id="boxD"><span class="word" id="wordD">...</span></div>
         </div>
 
         <div class="row">
-          <div class="letter-box">С</div>
-          <div class="word-box">
-            <div class="mini-letter" id="miniS">С</div>
-            <div class="word-main" id="boxS"><span class="word" id="wordS">...</span></div>
-          </div>
+          <div class="letter-box" id="letterS">С</div>
+          <div class="word-main" id="boxS"><span class="word" id="wordS">...</span></div>
         </div>
       </div>
 
@@ -354,8 +286,7 @@
 
   <script>
     const icon = document.getElementById("themeIcon");
-    const dice = document.getElementById("dice");
-    const spinBtn = document.getElementById("spinBtn");
+    const fishDice = document.getElementById("fishDice");
 
     const words = {
       F: [
@@ -376,7 +307,14 @@
         "Фартовые",
         "Фигуранты",
         "Фантазеры",
-        "Фурии"
+        "Фурии",
+        "Фанатики",
+        "Флагелланты",
+        "Фокусники",
+        "Фуражиры",
+        "Факелоносцы",
+        "Фрилансеры",
+        "Фан-клуб"
       ],
       G: [
         "Грязи",
@@ -396,7 +334,14 @@
         "Гула",
         "Гонева",
         "Гарища",
-        "Глэма"
+        "Глэма",
+        "Грохота",
+        "Градуса",
+        "Гулянки",
+        "Гама",
+        "Грохота",
+        "Гармонии",
+        "Гонева"
       ],
       D: [
         "Дикой",
@@ -414,9 +359,16 @@
         "Дальняков",
         "Дурищи",
         "Дорожности",
-        "Дикойness".replace("ness",""),
         "Душевности",
-        "Дребезги"
+        "Дребезги",
+        "Движухи",
+        "Душнилы",
+        "Драйва",
+        "Декора",
+        "Дождины",
+        "Движа",
+        "Дымки",
+        "Добротности"
       ],
       S: [
         "Скорости",
@@ -436,11 +388,21 @@
         "Скитаний",
         "Сумрака",
         "Срывача",
-        "Самоиронии"
+        "Самоиронии",
+        "Слэма",
+        "Смеха",
+        "Сюжета",
+        "Сажи",
+        "Сезона",
+        "Смысла",
+        "Собранности"
       ]
     };
 
-    const fishFaces = ["🐟", "🐠", "🐡", "🦈", "🐬", "🐋"];
+    const fishFaces = [
+      "🐟", "🐠", "🐡", "🦈", "🐬", "🐋", "🐳", "🦭", "🪼", "🦑",
+      "🦐", "🦞", "🦀", "🐙", "🐋", "🐠", "🐟", "🐡", "🦈", "🐬"
+    ];
 
     function setIcon() {
       icon.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
@@ -464,14 +426,14 @@
 
     function animateBox(letter) {
       const box = document.getElementById("box" + letter);
-      const mini = document.getElementById("mini" + letter);
+      const mainLetter = document.getElementById("letter" + letter);
 
       box.classList.remove("flash");
-      mini.classList.remove("flash");
+      mainLetter.classList.remove("flash");
       void box.offsetWidth;
-      void mini.offsetWidth;
+      void mainLetter.offsetWidth;
       box.classList.add("flash");
-      mini.classList.add("flash");
+      mainLetter.classList.add("flash");
     }
 
     function setWord(letter, value) {
@@ -480,21 +442,22 @@
     }
 
     function rollDiceAnimation(duration = 1500) {
-      dice.classList.add("rolling");
+      fishDice.classList.add("rolling");
 
       const interval = setInterval(() => {
-        dice.textContent = randomItem(fishFaces);
+        fishDice.textContent = randomItem(fishFaces);
       }, 90);
 
       setTimeout(() => {
         clearInterval(interval);
-        dice.classList.remove("rolling");
-        dice.textContent = randomItem(fishFaces);
+        fishDice.classList.remove("rolling");
+        fishDice.textContent = randomItem(fishFaces);
       }, duration);
     }
 
     function spinFGDS() {
-      spinBtn.disabled = true;
+      if (fishDice.classList.contains("rolling")) return;
+
       rollDiceAnimation();
 
       const f = randomItem(words.F);
@@ -512,10 +475,6 @@
       spinSteps.forEach((step, index) => {
         setTimeout(step, 350 + index * 220);
       });
-
-      setTimeout(() => {
-        spinBtn.disabled = false;
-      }, 1650);
     }
 
     spinFGDS();
