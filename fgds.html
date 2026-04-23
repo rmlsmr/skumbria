@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <link rel="icon" href="favicon.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Какой ФГДС сегодня ты?</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      color: #222;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    body.dark {
+      background: #0d1117;
+      color: #c9d1d9;
+    }
+
+    .wrap {
+      width: 100%;
+      max-width: 520px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      gap: 10px;
+    }
+
+    a {
+      text-decoration: none;
+      color: #0066cc;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    body.dark a {
+      color: #58a6ff;
+    }
+
+    .theme-toggle {
+      cursor: pointer;
+      font-size: 22px;
+      user-select: none;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.55);
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 18px;
+      padding: 22px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.05);
+    }
+
+    body.dark .card {
+      background: rgba(255,255,255,0.04);
+      border-color: rgba(255,255,255,0.08);
+      box-shadow: none;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 32px;
+      line-height: 1.05;
+    }
+
+    .sub {
+      margin: 0 0 18px;
+      opacity: 0.8;
+      line-height: 1.4;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      font: inherit;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 1px solid #999;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+
+    button:hover {
+      background: rgba(0,0,0,0.04);
+    }
+
+    button:active {
+      transform: scale(0.97);
+    }
+
+    body.dark button {
+      border-color: #555;
+    }
+
+    body.dark button:hover {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .dice-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 56px;
+    }
+
+    .dice {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      border: 2px solid rgba(0,0,0,0.16);
+      background: #fffaf0;
+      color: #222;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      transform-origin: center;
+    }
+
+    .dice.rolling {
+      animation: diceRoll 0.18s linear infinite;
+    }
+
+    @keyframes diceRoll {
+      0%   { transform: rotate(-8deg) scale(0.96); }
+      25%  { transform: rotate(10deg) scale(1.02); }
+      50%  { transform: rotate(-6deg) scale(0.98); }
+      75%  { transform: rotate(7deg) scale(1.03); }
+      100% { transform: rotate(-8deg) scale(0.96); }
+    }
+
+    .grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 58px 1fr;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .letter-box {
+      border-radius: 14px;
+      background: #222;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 700;
+      min-height: 66px;
+      letter-spacing: 1px;
+    }
+
+    body.dark .letter-box {
+      background: #c9d1d9;
+      color: #111;
+    }
+
+    .word-box {
+      border-radius: 14px;
+      border: 2px solid rgba(0,0,0,0.10);
+      min-height: 66px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      background:
+        linear-gradient(to right, rgba(0,0,0,0.03) 1px, transparent 1px);
+      background-size: 32px 100%;
+      overflow: hidden;
+      position: relative;
+    }
+
+    body.dark .word-box {
+      border-color: rgba(255,255,255,0.12);
+      background:
+        linear-gradient(to right, rgba(255,255,255,0.05) 1px, transparent 1px);
+      background-size: 32px 100%;
+    }
+
+    .word {
+      position: relative;
+      z-index: 2;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .word-box.flash {
+      animation: flashBox 0.35s ease;
+    }
+
+    @keyframes flashBox {
+      0%   { transform: scale(0.98); opacity: 0.75; }
+      50%  { transform: scale(1.01); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .full-result {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(128,128,128,0.25);
+    }
+
+    .full-result h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+      opacity: 0.85;
+    }
+
+    .phrase {
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1.25;
+    }
+
+    .hint {
+      margin-top: 12px;
+      opacity: 0.72;
+      line-height: 1.4;
+      font-size: 14px;
+    }
+
+    @media (max-width: 560px) {
+      h1 {
+        font-size: 28px;
+      }
+
+      .word-box {
+        font-size: 20px;
+        min-height: 60px;
+      }
+
+      .letter-box {
+        min-height: 60px;
+        font-size: 24px;
+      }
+
+      .phrase {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a href="index.html">назад</a>
+      <div class="theme-toggle" onclick="toggleTheme()" id="themeIcon">🌙</div>
+    </div>
+
+    <div class="card">
+      <h1>Какой ФГДС сегодня ты?</h1>
+      <p class="sub">Жми кнопку "копчение" и получай случайную, но осмысленную расшифровку.</p>
+
+      <div class="controls">
+        <button type="button" id="spinBtn" onclick="spinFGDS()">копчение</button>
+        <div class="dice-wrap">
+          <div class="dice" id="dice">🎲</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="row">
+          <div class="letter-box">Ф</div>
+          <div class="word-box" id="boxF"><span class="word" id="wordF">...</span></div>
+        </div>
+
+        <div class="row">
+          <div class="letter-box">Г</div>
+          <div class="word-box" id="boxG"><span class="word" id="wordG">...</span></div>
+        </div>
+
+        <div class="row">
+          <div class="letter-box">Д</div>
+          <div class="word-box" id="boxD"><span class="word" id="wordD">...</span></div>
+        </div>
+
+        <div class="row">
+          <div class="letter-box">С</div>
+          <div class="word-box" id="boxS"><span class="word" id="wordS">...</span></div>
+        </div>
+      </div>
+
+      <div class="full-result">
+        <h2>итог</h2>
+        <div class="phrase" id="fullPhrase">Ф ...<br>Г ...<br>Д ...<br>С ...</div>
+      </div>
+
+      <div class="hint">каждый раз новая скумбрийная сущность. без совсем фонетической дичи, но с нормальным рыбным духом.</div>
+    </div>
+  </div>
+
+  <script>
+    const icon = document.getElementById("themeIcon");
+    const dice = document.getElementById("dice");
+    const spinBtn = document.getElementById("spinBtn");
+
+    const words = {
+      F: [
+        "Фанаты",
+        "Федерация",
+        "Философы",
+        "Флотилия",
+        "Формация",
+        "Феномены",
+        "Фантомы",
+        "Фристайлеры"
+      ],
+      G: [
+        "Грязи",
+        "Гравия",
+        "Гедонизма",
+        "Грунтов",
+        "Гонок",
+        "Гор",
+        "Гари",
+        "Голода"
+      ],
+      D: [
+        "Дикой",
+        "Дорог",
+        "Дури",
+        "Дальнобойности",
+        "Движухи",
+        "Дистанции",
+        "Доблести",
+        "Дерзости"
+      ],
+      S: [
+        "Скорости",
+        "Скумбрии",
+        "Свободы",
+        "Страда",
+        "Стаи",
+        "Соли",
+        "Смелости",
+        "Сквозняка"
+      ]
+    };
+
+    const diceFaces = ["🎲", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
+
+    function setIcon() {
+      icon.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
+    }
+
+    function toggleTheme() {
+      document.body.classList.toggle("dark");
+      localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+      setIcon();
+    }
+
+    if (localStorage.getItem("theme") === "dark") {
+      document.body.classList.add("dark");
+    }
+
+    setIcon();
+
+    function randomItem(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function setWord(letter, value) {
+      document.getElementById("word" + letter).textContent = value;
+      const box = document.getElementById("box" + letter);
+      box.classList.remove("flash");
+      void box.offsetWidth;
+      box.classList.add("flash");
+    }
+
+    function updateFullPhrase() {
+      const f = document.getElementById("wordF").textContent;
+      const g = document.getElementById("wordG").textContent;
+      const d = document.getElementById("wordD").textContent;
+      const s = document.getElementById("wordS").textContent;
+
+      document.getElementById("fullPhrase").innerHTML =
+        `Ф ${f}<br>Г ${g}<br>Д ${d}<br>С ${s}`;
+    }
+
+    function rollDiceAnimation(duration = 1400) {
+      dice.classList.add("rolling");
+
+      const interval = setInterval(() => {
+        dice.textContent = randomItem(diceFaces);
+      }, 90);
+
+      setTimeout(() => {
+        clearInterval(interval);
+        dice.classList.remove("rolling");
+        dice.textContent = randomItem(diceFaces.slice(1));
+      }, duration);
+    }
+
+    function spinFGDS() {
+      spinBtn.disabled = true;
+      rollDiceAnimation();
+
+      const f = randomItem(words.F);
+      const g = randomItem(words.G);
+      const d = randomItem(words.D);
+      const s = randomItem(words.S);
+
+      const spinSteps = [
+        () => setWord("F", f),
+        () => setWord("G", g),
+        () => setWord("D", d),
+        () => setWord("S", s),
+        () => updateFullPhrase()
+      ];
+
+      spinSteps.forEach((step, index) => {
+        setTimeout(step, 350 + index * 220);
+      });
+
+      setTimeout(() => {
+        spinBtn.disabled = false;
+      }, 1600);
+    }
+
+    spinFGDS();
+  </script>
+</body>
+</html>
