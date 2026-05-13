@@ -1,0 +1,1254 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Велогонки 2026 — Скумбрия</title>
+
+  <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+
+  <style>
+    :root {
+      --bg: #f3f3f0;
+      --panel: #ffffff;
+      --text: #1d1d1f;
+      --muted: #707070;
+      --line: #deded8;
+      --accent: #0066cc;
+      --accent-soft: #e8f1ff;
+      --danger: #9b2c2c;
+      --shadow: 0 10px 30px rgba(0,0,0,.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 420px 1fr;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .sidebar {
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+      overflow-y: auto;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      z-index: 5;
+    }
+
+    .map-wrap {
+      position: relative;
+      min-width: 0;
+    }
+
+    #map {
+      width: 100%;
+      height: 100vh;
+    }
+
+    .title {
+      margin: 0 0 6px;
+      font-size: 25px;
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+    }
+
+    .subtitle {
+      margin: 0 0 16px;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .controls {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .search {
+      width: 100%;
+      padding: 12px 13px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      font-size: 15px;
+      outline: none;
+      background: #fafafa;
+    }
+
+    .search:focus {
+      border-color: var(--accent);
+      background: #fff;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      font-size: 14px;
+      background: #fafafa;
+      outline: none;
+    }
+
+    .stats {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 12px 0 14px;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      background: #fafafa;
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+      padding-bottom: 24px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 13px;
+      cursor: pointer;
+      background: #fff;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-1px);
+      border-color: #b9cce8;
+      background: #fbfdff;
+    }
+
+    .card.active {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 7px;
+    }
+
+    .event-name {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.2;
+      font-weight: 700;
+    }
+
+    .date {
+      color: #fff;
+      background: #222;
+      border-radius: 999px;
+      padding: 5px 8px;
+      font-size: 12px;
+      white-space: nowrap;
+      flex: 0 0 auto;
+    }
+
+    .region {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 7px;
+    }
+
+    .format {
+      font-size: 13px;
+      color: var(--accent);
+      margin-bottom: 7px;
+      font-weight: 700;
+    }
+
+    .details {
+      font-size: 13px;
+      line-height: 1.35;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .card-link {
+      font-size: 13px;
+      word-break: break-word;
+    }
+
+    .empty {
+      padding: 20px;
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: 16px;
+      background: #fafafa;
+    }
+
+    .mobile-toggle {
+      display: none;
+    }
+
+    .balloon {
+      font-family: Arial, Helvetica, sans-serif;
+      max-width: 310px;
+    }
+
+    .balloon h3 {
+      margin: 0 0 6px;
+      font-size: 17px;
+      line-height: 1.2;
+    }
+
+    .balloon .meta {
+      color: #666;
+      font-size: 13px;
+      margin-bottom: 7px;
+    }
+
+    .balloon .kind {
+      color: #0066cc;
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 7px;
+    }
+
+    .balloon p {
+      margin: 0 0 8px;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    @media (max-width: 900px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        bottom: 10px;
+        width: min(420px, calc(100vw - 20px));
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        transform: translateX(-110%);
+        transition: transform .2s ease;
+      }
+
+      .sidebar.open {
+        transform: translateX(0);
+      }
+
+      .mobile-toggle {
+        display: block;
+        position: absolute;
+        left: 12px;
+        top: 12px;
+        z-index: 10;
+        border: 0;
+        background: #111;
+        color: #fff;
+        border-radius: 999px;
+        padding: 11px 14px;
+        font-size: 14px;
+        box-shadow: var(--shadow);
+      }
+
+      #map {
+        height: 100vh;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <aside class="sidebar" id="sidebar">
+      <h1 class="title">Велогонки 2026</h1>
+      <p class="subtitle">Россия, СНГ и Монголия. Гревел, байкпакинг, MTB, рогейны и всякая прекрасная боль.</p>
+
+      <div class="controls">
+        <input class="search" id="searchInput" type="search" placeholder="Поиск: МЕЛ, Алтай, гревел..." />
+
+        <div class="filters">
+          <select id="monthFilter">
+            <option value="">Все месяцы</option>
+            <option value="05">Май</option>
+            <option value="06">Июнь</option>
+            <option value="07">Июль</option>
+            <option value="08">Август</option>
+            <option value="09">Сентябрь</option>
+            <option value="10">Октябрь</option>
+          </select>
+
+          <select id="typeFilter">
+            <option value="">Все форматы</option>
+            <option value="bikepacking">байкпакинг / self-supported</option>
+            <option value="gravel">гревел</option>
+            <option value="mtb">MTB / кросс-кантри</option>
+            <option value="rogaine">рогейн / приключения</option>
+            <option value="road">шоссе / gran fondo</option>
+            <option value="tour">велотур</option>
+            <option value="other">прочее</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="stats">
+        <span class="pill" id="countPill">0 событий</span>
+        <span class="pill">май–октябрь 2026</span>
+      </div>
+
+      <div class="list" id="eventList"></div>
+    </aside>
+
+    <main class="map-wrap">
+      <button class="mobile-toggle" id="mobileToggle">Список</button>
+      <div id="map"></div>
+    </main>
+  </div>
+
+  <script>
+    const EVENTS = [
+      {
+        region: "Челябинская область",
+        name: "Кубок Слюдорудника",
+        url: "https://orgeo.ru/event/49574",
+        date: "01.05",
+        format: "MTB / кросс-кантри",
+        details: "01–03 мая, Кыштым, Слюдорудник",
+        coords: [55.7078, 60.5567],
+        type: "mtb"
+      },
+      {
+        region: "Саратовская область",
+        name: "Меловые горы России",
+        url: "https://orgeo.ru/event/52593",
+        date: "09.05",
+        format: "трёхдневная MTB веломногодневка",
+        details: "09–11 мая, Хвалынск, разделка + равнинный марафон + горный марафон",
+        coords: [52.4953, 48.1058],
+        type: "mtb"
+      },
+      {
+        region: "Кыргызстан",
+        name: "Ortosay Race 2026",
+        url: "https://velomesto.kg/ortosairace",
+        date: "09.05",
+        format: "MTB / грунтовая круговая гонка",
+        details: "Бишкек, Ортосайские холмы, круг 14 км, грунтовые дороги 100%, набор 210 м на круг",
+        coords: [42.8142, 74.6417],
+        type: "mtb"
+      },
+      {
+        region: "Татарстан",
+        name: "Мирная Миля",
+        url: "https://orgeo.ru/event/registration/shosse2026",
+        date: "16.05",
+        format: "любительская шоссейно-кольцевая гонка",
+        details: "16–17 мая, Казань, ЛБК Мирный, любители 15+",
+        coords: [55.7903, 49.1347],
+        type: "road"
+      },
+      {
+        region: "Беларусь",
+        name: "Навальнiца",
+        url: "https://orgeo.ru/event/index/type/cycling/region/by/no_national/1",
+        date: "16.05",
+        format: "веломарафон / навигация / пересечёнка",
+        details: "Солигорск, 30–40 км, обучение навигации и езде по пересечённой местности",
+        coords: [52.7876, 27.5415],
+        type: "rogaine"
+      },
+      {
+        region: "Тюменская область",
+        name: "8bar Круг Первый",
+        url: "https://orgeo.ru/event/8bar_2026_lap_one",
+        date: "17.05",
+        format: "любительская разделка iTT",
+        details: "Тюмень, озеро Лебяжье, 10,2 км, раздельный старт, драфтинг запрещён",
+        coords: [57.1522, 65.5272],
+        type: "road"
+      },
+      {
+        region: "Хабаровский край",
+        name: "Весенняя 120-ка",
+        url: "https://orgeo.ru/event/type/cycling",
+        date: "17.05",
+        format: "бревет / длинная дистанция",
+        details: "Хабаровск, 120 км, лимит 8 часов",
+        coords: [48.4802, 135.0719],
+        type: "bikepacking"
+      },
+      {
+        region: "Белгородская область",
+        name: "Полу-бревет Владимировка",
+        url: "https://orgeo.ru/event/type/cycling",
+        date: "17.05",
+        format: "полу-бревет",
+        details: "Старый Оскол, 100 км+, лимит 7 часов",
+        coords: [51.2967, 37.8348],
+        type: "bikepacking"
+      },
+      {
+        region: "Приморский край",
+        name: "Просторы Ветра 1 этап",
+        url: "https://orgeo.ru/event/type/cycling",
+        date: "23.05",
+        format: "индивидуальная велогонка",
+        details: "Уссурийск, дистанции 24 / 48 км",
+        coords: [43.8029, 131.9458],
+        type: "road"
+      },
+      {
+        region: "Челябинская область",
+        name: "ХСО Муравейник 2026",
+        url: "https://orgeo.ru/event/49553",
+        date: "23.05",
+        format: "XCO / кросс-кантри",
+        details: "Озёрск, озеро Булдым, кантрийная трасса",
+        coords: [55.7556, 60.7076],
+        type: "mtb"
+      },
+      {
+        region: "Новгородская область",
+        name: "Ильмера",
+        url: "https://fatracing.ru",
+        date: "23.05",
+        format: "любительская велогонка / Fat Racing",
+        details: "Новгородская область, событие Fat Racing",
+        coords: [58.5215, 31.2755],
+        type: "gravel"
+      },
+      {
+        region: "Тверская область",
+        name: "Kalina Bike 2026",
+        url: "https://orgeo.ru/event/info/kalina_baik_2026",
+        date: "24.05",
+        format: "кросс-кантри",
+        details: "Удомля, взрослые заезды 10 / 20 км",
+        coords: [57.8788, 35.0051],
+        type: "mtb"
+      },
+      {
+        region: "Челябинская область",
+        name: "Большой марафон",
+        url: "https://orgeo.ru/event/info/49572",
+        date: "24.05",
+        format: "MTB / веломарафон",
+        details: "Кыштым, Слюдорудник, грунтовые и лесные дорожки",
+        coords: [55.7078, 60.5567],
+        type: "mtb"
+      },
+      {
+        region: "Ленинградская область / Карелия",
+        name: "Золото Ладоги",
+        url: "https://industrysport.ru/novosti/news_post/velogonka-zoloto-ladogi-na-pmef-2026-prizovoj-fond-i-format-medialigi",
+        date: "25.05",
+        format: "шоссейная многодневка",
+        details: "25–31 мая, Ленинградская область, Карелия, Санкт-Петербург, есть любительский зачёт",
+        coords: [60.6297, 31.6186],
+        type: "road"
+      },
+      {
+        region: "Московская область",
+        name: "La Strada офф-роуд Красногорск",
+        url: "https://stradarace.ru",
+        date: "30.05",
+        format: "офф-роуд / гревел / MTB",
+        details: "Красногорск, 10 / 25 / 50 км",
+        coords: [55.8311, 37.3302],
+        type: "gravel"
+      },
+      {
+        region: "Калужская область",
+        name: "Тарутино",
+        url: "https://gravelseries.ru",
+        date: "30.05",
+        format: "гревел / любительская гонка",
+        details: "Таруса — Залужье, этап гравийного календаря",
+        coords: [54.7237, 37.1765],
+        type: "gravel"
+      },
+      {
+        region: "Рязанская область",
+        name: "Тропа Паустовского",
+        url: "https://orgeo.ru/event/50933",
+        date: "31.05",
+        format: "гревел / MTB / фэтбайк",
+        details: "Солотча, 6–10 / 22–26 / 35–39 км",
+        coords: [54.7896, 39.8332],
+        type: "gravel"
+      },
+      {
+        region: "Московская область",
+        name: "Gran Fondo Gravel Race",
+        url: "https://www.granfondo.ru",
+        date: "31.05",
+        format: "гравийная гонка",
+        details: "Парк Малевича, первый гравийный заезд Gran Fondo",
+        coords: [55.7327, 37.0760],
+        type: "gravel"
+      },
+      {
+        region: "Московская область",
+        name: "Gran Fondo Moscow Raceway",
+        url: "https://www.granfondo.ru",
+        date: "31.05",
+        format: "любительская шоссейная гонка",
+        details: "Волоколамск, Moscow Raceway, гонки 60 / 100 км, заезды от 30 км",
+        coords: [56.0067, 36.2436],
+        type: "road"
+      },
+      {
+        region: "Алтай",
+        name: "ABT JОРЫК",
+        url: "https://bike-tour.ru",
+        date: "31.05",
+        format: "организованный велотур с туристическим уклоном",
+        details: "31.05–06.06, Чуйский тракт сверху вниз, около 492 км, около 5100 м набора, на время только спецучастки",
+        coords: [50.2600, 87.6000],
+        type: "tour"
+      },
+      {
+        region: "Курганская область",
+        name: "Зауральский Веломарафон",
+        url: "https://orgeo.ru/event/index/type/cycling/region/kurgan",
+        date: "07.06",
+        format: "MTB / веломарафон",
+        details: "Курган, лесные тропы, 29 / 58 км",
+        coords: [55.4444, 65.3162],
+        type: "mtb"
+      },
+      {
+        region: "Самарская область",
+        name: "ТДК / Тур по Краю",
+        url: "https://vk.com/tdk.samara",
+        date: "12.06",
+        format: "спортивно-туристская велогонка",
+        details: "КП, маршрут по области, до 350 км за 3 дня",
+        coords: [53.1959, 50.1002],
+        type: "rogaine"
+      },
+      {
+        region: "Волгоградская область",
+        name: "МЕЛ",
+        url: "https://vk.com/mel_race",
+        date: "13.06",
+        format: "байкпакинг / самообеспечение",
+        details: "220 км / 150 км, обязательная ночёвка",
+        coords: [49.2587, 43.6979],
+        type: "bikepacking"
+      },
+      {
+        region: "Калужская область",
+        name: "Sport-Marafon Bike",
+        url: "https://sportmarafonfest.ru/bike",
+        date: "13.06",
+        format: "грунтовая велогонка",
+        details: "Никола-Ленивец, Bike 40 / 65 / 125 км",
+        coords: [54.7503, 35.6012],
+        type: "gravel"
+      },
+      {
+        region: "Московская область",
+        name: "GRYADKA Club Купабельный рогейн",
+        url: "https://orienteering.ru/s/rogein",
+        date: "19.06",
+        format: "рогейн / приключенческий формат",
+        details: "Балашиха, проверить наличие велоформата ближе к старту",
+        coords: [55.7963, 37.9382],
+        type: "rogaine"
+      },
+      {
+        region: "Новгородская область",
+        name: "Царь Грейдер",
+        url: "https://fatracing.ru/tsargravel",
+        date: "20.06",
+        format: "гревел / любительская гонка",
+        details: "Батецкий, 110 / 150 / 180 км, регистрация закрыта, слот с рук",
+        coords: [58.6467, 30.3028],
+        type: "gravel"
+      },
+      {
+        region: "Свердловская область",
+        name: "ХСО Кросс-Кантри Краснотурьинск",
+        url: "https://orgeo.ru/event/index/type/cycling/region/kurgan",
+        date: "20.06",
+        format: "XCO / кросс-кантри",
+        details: "Краснотурьинск, авторская кантрийная гонка",
+        coords: [59.7637, 60.1932],
+        type: "mtb"
+      },
+      {
+        region: "Свердловская область",
+        name: "Иовское плато Конжака",
+        url: "https://orgeo.ru/event/index/type/cycling/region/kurgan",
+        date: "21.06",
+        format: "гонка в гору",
+        details: "Конжак, подъём на Иовское плато",
+        coords: [59.6400, 59.1350],
+        type: "mtb"
+      },
+      {
+        region: "Московская область",
+        name: "Gran Fondo Бородино",
+        url: "https://www.granfondo.ru",
+        date: "21.06",
+        format: "любительская шоссейная гонка",
+        details: "Бородино, этап Gran Fondo Russia",
+        coords: [55.5295, 35.8190],
+        type: "road"
+      },
+      {
+        region: "Красноярский край",
+        name: "Суточная велогонка",
+        url: "https://race.triatleta.ru",
+        date: "25.06",
+        format: "24-часовая велогонка",
+        details: "Красноярск, сколько проедешь за сутки",
+        coords: [56.0153, 92.8932],
+        type: "other"
+      },
+      {
+        region: "Беларусь",
+        name: "Grodno Challenge 2026",
+        url: "https://orgeo.ru/event/47823",
+        date: "27.06",
+        format: "приключенческая гонка",
+        details: "Гродно, приключенческая гонка в заданном направлении, велоэтап нужно проверить по положению",
+        coords: [53.6694, 23.8131],
+        type: "rogaine"
+      },
+      {
+        region: "Ленинградская область",
+        name: "Горный кросс-115",
+        url: "https://orgeo.ru/event/50692",
+        date: "04.07",
+        format: "велорогейн / приключенческий формат",
+        details: "Лемболово, 5 часов вело, расширенная карта",
+        coords: [60.4123, 30.3555],
+        type: "rogaine"
+      },
+      {
+        region: "Кисловодск",
+        name: "КМВ-2026",
+        url: "https://orgeo.ru/event/48140",
+        date: "09.07",
+        format: "горная приключенческая гонка",
+        details: "09–12 июля, есть велокатегории, 12ч / 35ч, MTB + трекинг + техэтапы",
+        coords: [43.9052, 42.7168],
+        type: "rogaine"
+      },
+      {
+        region: "Ленинградская область",
+        name: "SHULZ Gravel Weekend",
+        url: "https://shulz.ru/events/sgw",
+        date: "11.07",
+        format: "гревел / велофестиваль",
+        details: "Ленинградская область, большой круг 100–120 км, малый 60–80 км",
+        coords: [59.9386, 30.3141],
+        type: "gravel"
+      },
+      {
+        region: "Московская область",
+        name: "Летний Компот-рогейн",
+        url: "https://orgeo.ru/event/type/rogaining",
+        date: "11.07",
+        format: "велорогейн",
+        details: "Пушкинский район, 3 / 6 часов вело",
+        coords: [56.0104, 37.8472],
+        type: "rogaine"
+      },
+      {
+        region: "Костромская область",
+        name: "Галичское Заозерье Спортфест",
+        url: "https://orgeo.ru/event/type/rogaining",
+        date: "11.07",
+        format: "рогейн с велоформатом",
+        details: "Галичский район, 4 / 8 часов",
+        coords: [58.3827, 42.3463],
+        type: "rogaine"
+      },
+      {
+        region: "Новгородская область",
+        name: "ТТТ Пилот",
+        url: "https://fatracing.ru",
+        date: "11.07",
+        format: "командная велогонка / Fat Racing",
+        details: "событие Fat Racing, детали уточнять на странице организатора",
+        coords: [58.5215, 31.2755],
+        type: "road"
+      },
+      {
+        region: "Ярославская область",
+        name: "Gran Fondo Переславль",
+        url: "https://www.granfondo.ru",
+        date: "12.07",
+        format: "любительская шоссейная гонка",
+        details: "Переславль-Залесский, этап Gran Fondo Russia",
+        coords: [56.7360, 38.8543],
+        type: "road"
+      },
+      {
+        region: "Самарская область",
+        name: "LUKA Ultra Trail & Bike",
+        url: "https://lukaultratrail.ru/summer/",
+        date: "18.07",
+        format: "ультра / вело / трейл",
+        details: "Самарская Лука, Ширяево, велоформат уточнять ближе к старту",
+        coords: [53.4136, 50.0046],
+        type: "mtb"
+      },
+      {
+        region: "Московская область",
+        name: "Gravel Instinct",
+        url: "https://gravelseries.ru",
+        date: "18.07",
+        format: "гревел / любительская гонка",
+        details: "Московская область, этап гравийного календаря",
+        coords: [55.7558, 37.6173],
+        type: "gravel"
+      },
+      {
+        region: "Московская область",
+        name: "Кубок России по рогейну",
+        url: "https://orgeo.ru/event/info/49748",
+        date: "18.07",
+        format: "рогейн / велоформат",
+        details: "Воскресенский район, Хорлово, 18–19 июля",
+        coords: [55.3393, 38.8137],
+        type: "rogaine"
+      },
+      {
+        region: "Ленинградская область",
+        name: "ARDOR Gravel Race",
+        url: "https://gravelseries.ru",
+        date: "25.07",
+        format: "гревел / любительская гонка",
+        details: "Ленинградская область, этап Русской гравийной серии",
+        coords: [59.9386, 30.3141],
+        type: "gravel"
+      },
+      {
+        region: "Алтайский край",
+        name: "V Алтайский рогейн",
+        url: "https://orgeo.ru/event/49927",
+        date: "25.07",
+        format: "рогейн / велоформат",
+        details: "Барнаул, в рамках Спорт Фест Алтай",
+        coords: [53.3474, 83.7788],
+        type: "rogaine"
+      },
+      {
+        region: "Ленинградская область",
+        name: "Лужский приключенческий рогейн",
+        url: "https://orgeo.ru/event/type/rogaining",
+        date: "25.07",
+        format: "приключенческий рогейн / вело",
+        details: "Лужский район, бег и вело 6 / 24 часа",
+        coords: [58.7370, 29.8460],
+        type: "rogaine"
+      },
+      {
+        region: "Курганская область",
+        name: "Долина",
+        url: "https://orgeo.ru/event/52696",
+        date: "01.08",
+        format: "MTB / кросс-кантри",
+        details: "Куртамыш, спортивный фестиваль, кросс-кантри велогонка",
+        coords: [54.9103, 64.4336],
+        type: "mtb"
+      },
+      {
+        region: "Москва",
+        name: "La Strada офф-роуд Москва",
+        url: "https://stradarace.ru",
+        date: "01.08",
+        format: "офф-роуд / гревел / MTB",
+        details: "Москва / Альфа-Битца, 10 / 25 / 50 км",
+        coords: [55.6000, 37.5700],
+        type: "gravel"
+      },
+      {
+        region: "Владимирская область",
+        name: "Покрова",
+        url: "https://www.obyem.media/calendar-velogonok",
+        date: "01.08",
+        format: "гревел / любительская гонка",
+        details: "Владимир, 100 км, гравийная гонка из календаря Объём",
+        coords: [56.1290, 40.4066],
+        type: "gravel"
+      },
+      {
+        region: "Байкал / Иркутская область",
+        name: "Baikal Bikepacking Race",
+        url: "https://baikalbikepackingrace.ru",
+        date: "02.08",
+        format: "автономная многодневная велогонка",
+        details: "815–816 км, около 10000 м набора, старт и финиш в Иркутске",
+        coords: [52.2864, 104.2807],
+        type: "bikepacking"
+      },
+      {
+        region: "Монголия",
+        name: "Mongolia Bike Challenge",
+        url: "https://battistrada.com/en/cycling-calendar/edition/mongolia-bike-challenge-2026/51286/",
+        date: "07.08",
+        format: "многодневная MTB stage race",
+        details: "07–16 августа, Улан-Батор, 600 км, организованная многодневная гонка с сопровождением",
+        coords: [47.9184, 106.9177],
+        type: "mtb"
+      },
+      {
+        region: "Ленинградская область",
+        name: "Рогейн на холмах Яппиля",
+        url: "https://orgeo.ru/event/type/rogaining",
+        date: "08.08",
+        format: "велорогейн",
+        details: "Выборгский район, 4 часа",
+        coords: [60.7100, 28.7500],
+        type: "rogaine"
+      },
+      {
+        region: "Ленинградская область",
+        name: "FURY ROAD",
+        url: "https://furyroad.ru",
+        date: "15.08",
+        format: "гравийная гонка / приключение",
+        details: "Ленинградская область, 120 км, общий уикенд 14–16 августа",
+        coords: [60.4000, 30.0000],
+        type: "gravel"
+      },
+      {
+        region: "Кыргызстан",
+        name: "Silk Road Mountain Race",
+        url: "https://www.themountainraces.cc/silk-road-mountain-race",
+        date: "15.08",
+        format: "self-supported bikepacking",
+        details: "Талас — Чолпон-Ата, около 1900–2052 км, около 30000–35362 м набора, fixed route unsupported",
+        coords: [42.5228, 72.2427],
+        type: "bikepacking"
+      },
+      {
+        region: "Москва",
+        name: "Альтерактива Большая летняя",
+        url: "https://orgeo.ru/event/type/rogaining",
+        date: "15.08",
+        format: "городская приключенческая игра / вело",
+        details: "Москва, пешком или на велосипеде, 3 / 5 / 8 часов",
+        coords: [55.7558, 37.6173],
+        type: "rogaine"
+      },
+      {
+        region: "Казахстан",
+        name: "Gran Fondo Kazakhstan",
+        url: "https://www.granfondoworldtour.com/",
+        date: "16.08",
+        format: "любительская шоссейная гонка",
+        details: "Алматы, этап Gran Fondo World Tour / World Championship 2026",
+        coords: [43.2389, 76.8897],
+        type: "road"
+      },
+      {
+        region: "Карелия / Мурманская область",
+        name: "Тур Юнайт: Карельский сегмент",
+        url: "https://www.tourunite.info",
+        date: "16.08",
+        format: "сверхдлинный self-supported",
+        details: "Карелия — Мурманская область, 1310 км, около 7000 м набора",
+        coords: [61.7850, 34.3469],
+        type: "bikepacking"
+      },
+      {
+        region: "Ленинградская область",
+        name: "Чемпионат России по рогейну",
+        url: "https://www.multsport.ru/calendar.html",
+        date: "22.08",
+        format: "рогейн / велосипедный зачёт",
+        details: "22–23 августа, 24 часа общий формат, отдельный велосипедный зачёт на 8 часов",
+        coords: [59.9386, 30.3141],
+        type: "rogaine"
+      },
+      {
+        region: "Московская область",
+        name: "Gran Fondo Серпухов",
+        url: "https://www.granfondo.ru",
+        date: "23.08",
+        format: "любительская шоссейная гонка",
+        details: "Серпухов, этап Gran Fondo Russia",
+        coords: [54.9135, 37.4168],
+        type: "road"
+      },
+      {
+        region: "Алтай",
+        name: "ABT JОЛ",
+        url: "https://bike-tour.ru",
+        date: "24.08",
+        format: "организованный спортивный велотур",
+        details: "24–30.08, Чуйский тракт снизу вверх, около 600 км, около 6500 м набора, вся дистанция на время",
+        coords: [50.2600, 87.6000],
+        type: "tour"
+      },
+      {
+        region: "Приморский край",
+        name: "Просторы Ветра",
+        url: "https://orgeo.ru/event/index/type/cycling/no_national/1",
+        date: "29.08",
+        format: "индивидуальная велогонка",
+        details: "Уссурийск, этап серии",
+        coords: [43.8029, 131.9458],
+        type: "road"
+      },
+      {
+        region: "Южный Урал",
+        name: "Russia Bikepacking: Южный Урал",
+        url: "https://russiabikepacking.ru",
+        date: "05.09",
+        format: "self-supported bikepacking",
+        details: "1130 км / 500 км официально, в соцсетях встречается 1170 / 540 км",
+        coords: [53.3474, 58.9806],
+        type: "bikepacking"
+      },
+      {
+        region: "Санкт-Петербург",
+        name: "La Strada офф-роуд",
+        url: "https://stradarace.ru",
+        date: "12.09",
+        format: "офф-роуд / гревел / MTB",
+        details: "Санкт-Петербург, 10 / 25 / 50 км",
+        coords: [59.9386, 30.3141],
+        type: "gravel"
+      },
+      {
+        region: "Узбекистан",
+        name: "Challenge Samarkand",
+        url: "https://challenge-samarkand.com",
+        date: "12.09",
+        format: "триатлон с велоэтапом",
+        details: "Самарканд, велоэтап 86 км в средней дистанции, не чистая велогонка",
+        coords: [39.6542, 66.9597],
+        type: "other"
+      },
+      {
+        region: "Свердловская область",
+        name: "Гравийное кольцо",
+        url: "https://orgeo.ru/event/index/type/cycling/no_national/1",
+        date: "13.09",
+        format: "гравийный велозаезд",
+        details: "Нижний Тагил, Лисья гора, грунтовые и лесные дорожки",
+        coords: [57.9101, 59.9813],
+        type: "gravel"
+      },
+      {
+        region: "Сочи / Красная Поляна",
+        name: "Три Горы Осень",
+        url: "https://events.topliga.ru",
+        date: "18.09",
+        format: "горная шоссейная гонка",
+        details: "Красная Поляна, до 73 км",
+        coords: [43.6806, 40.2041],
+        type: "road"
+      },
+      {
+        region: "Ленинградская область",
+        name: "ВелоИзоляция",
+        url: "https://www.multsport.ru/calendar.html",
+        date: "19.09",
+        format: "приключенческий рогейн / вело",
+        details: "19–20 сентября, велосипедный формат 4 / 8 часов",
+        coords: [59.9386, 30.3141],
+        type: "rogaine"
+      },
+      {
+        region: "Новгородская область",
+        name: "Вяломарафон",
+        url: "https://fatracing.ru/vyalomarafon",
+        date: "19.09",
+        format: "веломарафон / гревел / MTB",
+        details: "Боровичи, около 60 км",
+        coords: [58.3878, 33.9155],
+        type: "gravel"
+      },
+      {
+        region: "Московская область",
+        name: "Gran Fondo Руза",
+        url: "https://www.granfondo.ru",
+        date: "20.09",
+        format: "любительская шоссейная гонка",
+        details: "Руза, этап Gran Fondo Russia",
+        coords: [55.7015, 36.1965],
+        type: "road"
+      },
+      {
+        region: "Приморский край",
+        name: "Просторы Ветра",
+        url: "https://orgeo.ru/event/index/type/cycling/no_national/1",
+        date: "26.09",
+        format: "индивидуальная велогонка",
+        details: "Уссурийск, этап серии",
+        coords: [43.8029, 131.9458],
+        type: "road"
+      },
+      {
+        region: "Ленинградская область",
+        name: "Hard Bike Race",
+        url: "https://hardadventure.ru",
+        date: "03.10",
+        format: "MTB / офф-роуд",
+        details: "Семиозерье, 20–40 км",
+        coords: [60.2500, 30.2000],
+        type: "mtb"
+      },
+      {
+        region: "Новгородская область",
+        name: "Типациклокросс и кросс",
+        url: "https://fatracing.ru",
+        date: "17.10",
+        format: "циклокросс / кросс",
+        details: "Великий Новгород, парк 1100-летия",
+        coords: [58.5215, 31.2755],
+        type: "other"
+      },
+      {
+        region: "Новгородская область",
+        name: "Типациклокросс и кросс",
+        url: "https://fatracing.ru",
+        date: "31.10",
+        format: "циклокросс / кросс",
+        details: "Горушка",
+        coords: [58.5215, 31.2755],
+        type: "other"
+      }
+    ];
+
+    let map;
+    let clusterer;
+    let placemarks = [];
+    let activeEventName = null;
+
+    function getMonth(dateString) {
+      const parts = dateString.split(".");
+      return parts.length > 1 ? parts[1] : "";
+    }
+
+    function compareDates(a, b) {
+      const [ad, am] = a.date.split(".").map(Number);
+      const [bd, bm] = b.date.split(".").map(Number);
+      if (am !== bm) return am - bm;
+      return ad - bd;
+    }
+
+    function getFilteredEvents() {
+      const query = document.getElementById("searchInput").value.trim().toLowerCase();
+      const month = document.getElementById("monthFilter").value;
+      const type = document.getElementById("typeFilter").value;
+
+      return EVENTS
+        .filter(event => {
+          const haystack = [
+            event.region,
+            event.name,
+            event.format,
+            event.details,
+            event.date
+          ].join(" ").toLowerCase();
+
+          const queryOk = !query || haystack.includes(query);
+          const monthOk = !month || getMonth(event.date) === month;
+          const typeOk = !type || event.type === type;
+
+          return queryOk && monthOk && typeOk;
+        })
+        .sort(compareDates);
+    }
+
+    function makeBalloon(event) {
+      return `
+        <div class="balloon">
+          <h3>${event.name}</h3>
+          <div class="meta">${event.region} · ${event.date}</div>
+          <div class="kind">${event.format}</div>
+          <p>${event.details}</p>
+          <a href="${event.url}" target="_blank" rel="noopener">Открыть страницу</a>
+        </div>
+      `;
+    }
+
+    function makePlacemark(event) {
+      const placemark = new ymaps.Placemark(
+        event.coords,
+        {
+          balloonContent: makeBalloon(event),
+          hintContent: `${event.date} · ${event.name}`
+        },
+        {
+          preset: getPreset(event.type),
+          iconCaptionMaxWidth: "180"
+        }
+      );
+
+      placemark.events.add("click", function () {
+        activeEventName = event.name;
+        renderList();
+      });
+
+      return placemark;
+    }
+
+    function getPreset(type) {
+      const presets = {
+        bikepacking: "islands#blackBicycleIcon",
+        gravel: "islands#blueBicycleIcon",
+        mtb: "islands#greenBicycleIcon",
+        rogaine: "islands#violetBicycleIcon",
+        road: "islands#redBicycleIcon",
+        tour: "islands#orangeBicycleIcon",
+        other: "islands#grayBicycleIcon"
+      };
+
+      return presets[type] || "islands#blueBicycleIcon";
+    }
+
+    function renderMap() {
+      const filteredEvents = getFilteredEvents();
+
+      clusterer.removeAll();
+      placemarks = filteredEvents.map(makePlacemark);
+      clusterer.add(placemarks);
+
+      if (filteredEvents.length) {
+        const bounds = clusterer.getBounds();
+        if (bounds) {
+          map.setBounds(bounds, {
+            checkZoomRange: true,
+            zoomMargin: 45
+          });
+        }
+      }
+    }
+
+    function renderList() {
+      const list = document.getElementById("eventList");
+      const countPill = document.getElementById("countPill");
+      const filteredEvents = getFilteredEvents();
+
+      countPill.textContent = `${filteredEvents.length} событий`;
+      list.innerHTML = "";
+
+      if (!filteredEvents.length) {
+        list.innerHTML = `<div class="empty">Ничего не найдено. Фильтр слишком суров, как Южный Урал в сентябре.</div>`;
+        return;
+      }
+
+      filteredEvents.forEach(event => {
+        const card = document.createElement("article");
+        card.className = "card" + (activeEventName === event.name ? " active" : "");
+
+        card.innerHTML = `
+          <div class="card-top">
+            <h2 class="event-name">${event.name}</h2>
+            <span class="date">${event.date}</span>
+          </div>
+          <div class="region">${event.region}</div>
+          <div class="format">${event.format}</div>
+          <div class="details">${event.details}</div>
+          <a class="card-link" href="${event.url}" target="_blank" rel="noopener">${event.url}</a>
+        `;
+
+        card.addEventListener("click", function (e) {
+          if (e.target.tagName.toLowerCase() === "a") return;
+
+          activeEventName = event.name;
+          renderList();
+
+          map.setCenter(event.coords, 8, {
+            duration: 250
+          });
+
+          const mark = placemarks.find(item => item.geometry.getCoordinates()[0] === event.coords[0] && item.geometry.getCoordinates()[1] === event.coords[1]);
+
+          if (mark) {
+            mark.balloon.open();
+          }
+
+          if (window.innerWidth <= 900) {
+            document.getElementById("sidebar").classList.remove("open");
+          }
+        });
+
+        list.appendChild(card);
+      });
+    }
+
+    function updateAll() {
+      renderMap();
+      renderList();
+    }
+
+    function init() {
+      map = new ymaps.Map("map", {
+        center: [55.751244, 37.618423],
+        zoom: 4,
+        controls: ["zoomControl", "typeSelector", "fullscreenControl"]
+      });
+
+      clusterer = new ymaps.Clusterer({
+        preset: "islands#invertedBlueClusterIcons",
+        groupByCoordinates: false,
+        clusterDisableClickZoom: false,
+        clusterOpenBalloonOnClick: true
+      });
+
+      map.geoObjects.add(clusterer);
+
+      document.getElementById("searchInput").addEventListener("input", updateAll);
+      document.getElementById("monthFilter").addEventListener("change", updateAll);
+      document.getElementById("typeFilter").addEventListener("change", updateAll);
+
+      document.getElementById("mobileToggle").addEventListener("click", function () {
+        document.getElementById("sidebar").classList.toggle("open");
+      });
+
+      updateAll();
+    }
+
+    ymaps.ready(init);
+  </script>
+</body>
+</html>
